@@ -1,0 +1,6 @@
+Nom;ID;Categorie;Etat;
+trotinette;1;vehicules;OK;
+monocycle;2;vehicules;DES;
+casier;5;coffre-fort;OK;
+velo;11;vehicules;KO;
+a;1;a;OK;
