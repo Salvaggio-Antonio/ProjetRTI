@@ -1,0 +1,61 @@
+CREATE TABLE `chambres` (
+  `idchambres` int NOT NULL AUTO_INCREMENT,
+  `equipement` varchar(100) DEFAULT NULL,
+  `nb_occupants` int DEFAULT NULL,
+  `prix_htva` double DEFAULT NULL,
+  `typeLieu` varchar(255) DEFAULT NULL,
+  `estReserve` tinyint(1) DEFAULT NULL,
+  `typeChambre` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`idchambres`),
+  CONSTRAINT `chambres_chk_1` CHECK ((`typeChambre` in (_utf8mb4'Simple',_utf8mb4'Double',_utf8mb4'Familiale'))),
+  CONSTRAINT `chambres_chk_2` CHECK ((`typeLieu` in (_utf8mb4'Village',_utf8mb4'Motel')))
+) ENGINE=InnoDB AUTO_INCREMENT=204 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+CREATE TABLE `voyageurs` (
+  `idVOYAGEURS` int NOT NULL AUTO_INCREMENT,
+  `NOM` varchar(30) DEFAULT NULL,
+  `PRENOM` varchar(45) DEFAULT NULL,
+  `ADRESSE` varchar(45) DEFAULT NULL,
+  `CODEPOSTAL` varchar(45) DEFAULT NULL,
+  `COMMUNE` varchar(45) DEFAULT NULL,
+  `NATIONALITE` varchar(45) DEFAULT NULL,
+  `DATE_NAISS` date DEFAULT NULL,
+  `MAIL` varchar(45) DEFAULT NULL,
+  `creditCard` varchar(45) DEFAULT NULL,
+  `motDepasse` varchar(45) DEFAULT NULL,
+  `ACCOMPAGNANT` int DEFAULT NULL,
+  PRIMARY KEY (`idVOYAGEURS`),
+  UNIQUE KEY `MAIL` (`MAIL`),
+  KEY `ACCOMPAGNANT` (`ACCOMPAGNANT`),
+  CONSTRAINT `voyageurs_ibfk_1` FOREIGN KEY (`ACCOMPAGNANT`) REFERENCES `voyageurs` (`idVOYAGEURS`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+CREATE TABLE `activites` (
+  `idactivites` int NOT NULL AUTO_INCREMENT,
+  `nom` varchar(45) DEFAULT NULL,
+  `type` varchar(45) DEFAULT NULL,
+  `nb_max_participants` int DEFAULT NULL,
+  `nb_inscrit` int DEFAULT NULL,
+  `duree` int DEFAULT NULL,
+  `prix_htva` double DEFAULT NULL,
+  PRIMARY KEY (`idactivites`)
+) ENGINE=InnoDB AUTO_INCREMENT=201 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+
+CREATE TABLE `reservations` (
+  `idreservations` int NOT NULL AUTO_INCREMENT,
+  `id_titulaire` int DEFAULT NULL,
+  `id_activite` int DEFAULT NULL,
+  `id_chambre` int DEFAULT NULL,
+  `date_debut` date DEFAULT NULL,
+  `date_fin` date DEFAULT NULL,
+  `prix_net` double DEFAULT NULL,
+  `paye` tinyint(1) DEFAULT NULL,
+  `NombreNuit` int DEFAULT NULL,
+  PRIMARY KEY (`idreservations`),
+  KEY `id_titulaire` (`id_titulaire`),
+  KEY `id_activite` (`id_activite`),
+  KEY `id_chambre` (`id_chambre`),
+  CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`id_titulaire`) REFERENCES `voyageurs` (`idVOYAGEURS`),
+  CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`id_activite`) REFERENCES `activites` (`idactivites`),
+  CONSTRAINT `reservations_ibfk_3` FOREIGN KEY (`id_chambre`) REFERENCES `chambres` (`idchambres`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
