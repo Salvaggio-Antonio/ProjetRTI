@@ -28,7 +28,8 @@ public class FenAppServeur_Reservations extends javax.swing.JFrame implements Co
 
     private int port;
     
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
+    public String path = "Config/Config.config";
+    //public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
 
     public FenAppServeur_Reservations() throws IOException {
         initComponents();
