@@ -13,26 +13,36 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <form action="ReservationServlet" method="post">
-            <select name="categorie" id="categorie">
-                <option value="Motel">Motel</option>
-                <option value="Village">Village</option>
-            </select>
+        <% String user = (String)request.getSession().getAttribute("user");
+    
+        if(user== null){
             
-            <select name="typeChambre" id="typeChambre">
-                <option value="Simple">Simple</option>
-                <option value="Double">Double</option>
-                <option value="Familiale">Familiale</option>
-            </select>
-            
-            <input type="date" name="dated">
-            
-            <Label>Nombre de nuit : </label>
-            <input type="number" name="nombreNuit">
-            
-            <input type="submit" value="Reserver">
-            
-        </form>
+            response.sendRedirect(request.getContextPath() + "/Login.jsp");
+        } %>
+        <div class ="container">
+            <form class="form-group" action="ReservationServlet" method="post">
+                
+                <select class="form-control" name="categorie" id="categorie">
+                    <option value="Motel">Motel</option>
+                    <option value="Village">Village</option>
+                </select>
+
+                <select class="form-control" name="typeChambre" id="typeChambre">
+                    <option value="Simple">Simple</option>
+                    <option value="Double">Double</option>
+                    <option value="Familiale">Familiale</option>
+                </select>
+
+                <input class="form-control" type="date" name="dated">
+
+                <Label>Nombre de nuit : </label>
+                <input class="form-control" type="number" name="nombreNuit">
+
+                <input type="submit" class="btn btn-primary" value="Reserver">
+
+            </form>
+        </div>
+        
         
         
     </body>

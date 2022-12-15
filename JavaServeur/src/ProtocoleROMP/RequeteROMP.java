@@ -10,6 +10,7 @@ import Requete.Requete;
 import Serveurs.ConsoleServeur;
 import Utilities.Utils;
 import database.facility.BDHolidays;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -29,8 +30,9 @@ public class RequeteROMP implements Requete, Serializable {
     private int type;
     private Socket socketClient;
     public String chargeUtile;
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
+     File currentDirectory = new File(System.getProperty("user.dir"));
     
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public static final int LOGIN = 1;
     public static final int BROOM = 2;
     public static final int PROOM = 3;
@@ -219,10 +221,8 @@ public class RequeteROMP implements Requete, Serializable {
         if(rs.next()){
             
             if(rs.getString("creditCard").equals(recu[2])){
-                
-                Boolean  b = bd.PaiementReservation(Integer.parseInt(recu[3]), Integer.parseInt(rs.getString("idvoyageurs")), recu[4] );
         
-                if(b){
+                if(bd.PaiementReservation(Integer.parseInt(recu[3]), Integer.parseInt(rs.getString("idvoyageurs")), recu[4] )){
                     
                     rep = new ReponseROMP(ReponseROMP.OK,"Le paiement a été un succès !!");
                     }else{
@@ -264,14 +264,12 @@ public class RequeteROMP implements Requete, Serializable {
         
         if(rs.next()){
      
-            Boolean  b = bd.SuppressionReservation(Integer.parseInt(recu[2]), Integer.parseInt(rs.getString("idvoyageurs")), recu[3] );
 
-            if(b){
-
+            if(bd.SuppressionReservation(Integer.parseInt(recu[2]), Integer.parseInt(rs.getString("idvoyageurs")), recu[3] )){
                 rep = new ReponseROMP(ReponseROMP.OK,"La suppression a été un succès !!");
-                }else{
-                     rep = new ReponseROMP(ReponseROMP.ERREURINSERTION, "Erreur : la suppression n'a pas pu se faire !!");
-                }
+            }else{
+                rep = new ReponseROMP(ReponseROMP.ERREURINSERTION, "Erreur : la suppression n'a pas pu se faire !!");
+            }
            
             
         }else{

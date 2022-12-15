@@ -4,7 +4,6 @@
  */
 package Servlets;
 
-import database.facility.BDHolidays;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,17 +11,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Salva
  */
-public class InitCaddie extends HttpServlet {
+public class LogOut extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -34,33 +28,21 @@ public class InitCaddie extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, ClassNotFoundException, SQLException {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        
-        String user = (String) request.getSession().getAttribute("user");
-        
-        if(user== null || user.equals("")){
-            
+        if ((String)request.getSession().getAttribute("user") == null) {
             response.sendRedirect(request.getContextPath() + "/Login.jsp");
         }
         HttpSession session = request.getSession(true);
         
-        BDHolidays bd = new BDHolidays("root","root","bd_holidays");
+        session.removeAttribute("user");
+        session.removeAttribute("mdp");
+        session.removeAttribute("reppay");
+        session.removeAttribute("repres");
+        session.removeAttribute("ErrMessage");
         
-        ArrayList<String> reservations = new ArrayList();
-        try {
-            ResultSet s =bd.getReservationChambreByEMailNonPaye(user);
-            
-            while(s != null && s.next()){
-                reservations.add(s.getString("idreservations")+":"+ s.getString("id_chambre")+":"+s.getString("date_debut")+":"+s.getString("date_fin")+":"+s.getString("NombreNuit")+":"+s.getString("prix_net"));
-            }
-            
-            session.setAttribute("reservations", reservations);
-            response.sendRedirect(request.getContextPath() + "/JSPInit.jsp");
-            
-        } catch (SQLException ex) {
-            
-        }
+        response.sendRedirect(request.getContextPath() + "/Login.jsp");
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -75,11 +57,7 @@ public class InitCaddie extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(InitCaddie.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**
@@ -93,11 +71,7 @@ public class InitCaddie extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(InitCaddie.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**

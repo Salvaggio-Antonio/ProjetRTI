@@ -34,6 +34,24 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         }
     }
     
+    public synchronized ResultSet checkUserByCredit(String Email, String mdp, String carte)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs where mail = ? AND motDepasse = ? and creditCard = ?;");
+            preparedStatement.setString(1, Email);
+            preparedStatement.setString(2, mdp);
+            preparedStatement.setString(3, carte);
+            
+            return preparedStatement.executeQuery();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
     public synchronized ResultSet getAllActivities()
     {
         try
@@ -164,6 +182,42 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         }
     }
     
+    public synchronized boolean insertVoyageur( String mail, String mdp)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Voyageurs(Mail,motDepasse) VALUES (?, ?);");
+            preparedStatement.setString(1, mail);
+            preparedStatement.setString(2, mdp);
+            preparedStatement.execute();
+
+            return true;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    
+    
+    public synchronized ResultSet getVoyageursByEmail(String Email)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs WHERE mail = ?;");
+            preparedStatement.setString(1, Email);
+
+            return preparedStatement.executeQuery();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
     
     
 
@@ -193,14 +247,30 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         try
         {
             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM chambres left join reservations on (chambres.idchambres = reservations.id_chambre)"
-                    + " WHERE typelieu = ? and typechambre = ? and ((( Date(DATE_ADD(?, INTERVAL ? DAY)))<date_debut or Date(DATE_ADD(?, INTERVAL ? DAY)>date_fin)) or reservations.id_chambre is null)");
+                    + " WHERE typelieu = ? and typechambre = ? and (( DATE_ADD(?, INTERVAL ? DAY)<date_debut or ?>date_fin ) or reservations.id_chambre is null)");
             preparedStatement.setString(1, categorie);
             preparedStatement.setString(2, TypeChambre);
             preparedStatement.setString(3, date);
             preparedStatement.setInt(4, nombreNuit);
             preparedStatement.setString(5, date);
-            preparedStatement.setInt(6, nombreNuit);
             
+
+            return preparedStatement.executeQuery();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+     public synchronized ResultSet getReservationChambreByEMailNonPaye(String email)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs inner join reservations on (voyageurs.idvoyageurs = reservations.id_titulaire)"
+                    + " WHERE mail = ? and paye = false and id_chambre is not null");
+            preparedStatement.setString(1, email);
 
             return preparedStatement.executeQuery();
         }
@@ -293,9 +363,31 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             preparedStatement.setInt(2, id_titulaire);
             preparedStatement.setString(3, date);
 
-            preparedStatement.execute();
+            int rowCount = preparedStatement.executeUpdate();
+            return rowCount > 0;
 
-            return true;
+            
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            
+            return false;
+        }
+    }
+    
+    public synchronized boolean PaiementReservation(int reservation , int id_titulaire)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("update reservations set paye =true  where idreservations = ? and id_titulaire =?; ");
+            preparedStatement.setInt(1, reservation);
+            preparedStatement.setInt(2, id_titulaire);
+
+
+            int rowCount = preparedStatement.executeUpdate();
+            return rowCount > 0;
+
         }
         catch (SQLException e)
         {
@@ -313,10 +405,12 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             preparedStatement.setInt(1, idchambre);
             preparedStatement.setInt(2, id_titulaire);
             preparedStatement.setString(3, date);
+            
+            int rowcount =preparedStatement.executeUpdate();
 
-            preparedStatement.execute();
+            return rowcount>0;
 
-            return true;
+             
         }
         catch (SQLException e)
         {

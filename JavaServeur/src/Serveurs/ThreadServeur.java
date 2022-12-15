@@ -7,6 +7,7 @@ package Serveurs;
 
 import Requete.Requete;
 import Utilities.Utils;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
@@ -23,8 +24,9 @@ public class ThreadServeur extends Thread {
     private SourceTaches tachesAExecuter;
     private ConsoleServeur guiApplication;
     private ServerSocket SSocket = null;
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
-
+     File currentDirectory = new File(System.getProperty("user.dir"));
+    
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     
     public ThreadServeur(int p, SourceTaches st, ConsoleServeur fs)
     {

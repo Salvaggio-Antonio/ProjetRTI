@@ -16,6 +16,14 @@
         <servlet-name>ReservationServlet</servlet-name>
         <servlet-class>Servlets.ReservationServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>PaiementServlet</servlet-name>
+        <servlet-class>Servlets.PaiementServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LogOut</servlet-name>
+        <servlet-class>Servlets.LogOut</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>LoginServlet</servlet-name>
         <url-pattern>/LoginServlet</url-pattern>
@@ -27,6 +35,14 @@
     <servlet-mapping>
         <servlet-name>ReservationServlet</servlet-name>
         <url-pattern>/ReservationServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PaiementServlet</servlet-name>
+        <url-pattern>/PaiementServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LogOut</servlet-name>
+        <url-pattern>/LogOut</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

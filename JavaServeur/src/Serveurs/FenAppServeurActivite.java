@@ -28,8 +28,9 @@ public class FenAppServeurActivite extends javax.swing.JFrame implements Console
 
     private int port;
     
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
-
+     File currentDirectory = new File(System.getProperty("user.dir"));
+    
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public FenAppServeurActivite() throws IOException {
         initComponents();
         

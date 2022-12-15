@@ -14,9 +14,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +21,7 @@ import java.util.logging.Logger;
  *
  * @author Salva
  */
-public class ReservationServlet extends HttpServlet {
+public class PaiementServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -36,7 +33,7 @@ public class ReservationServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, ParseException {
+            throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         HttpSession session = request.getSession(true);
         Boolean Trouve = false;
@@ -47,48 +44,37 @@ public class ReservationServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/Login.jsp");
         }
         String mdp = (String) request.getSession().getAttribute("mdp");
-
+        String carte = (String)request.getParameter("credit");
         try {
             BDHolidays bd = new BDHolidays("root","root","bd_holidays");
-            String newDateString = request.getParameter("dated");
-
             
-            ResultSet s =bd.getChambreLibre(request.getParameter("categorie"), request.getParameter("typeChambre"), newDateString, Integer.parseInt(request.getParameter("nombreNuit")));
-            ResultSet u = bd.getUserByEmail(user, mdp);
-            u.next();
-            Double prixnet =0.0;
+            ResultSet u = bd.checkUserByCredit(user, mdp, carte);
             
-            if(s != null)
-            {
-                if(s.next()){
-                    prixnet =Double.parseDouble(s.getString("prix_htva")) *1.21*Integer.parseInt(request.getParameter("nombreNuit"));
-                    if(bd.insertReservationChambre(Integer.parseInt(s.getString("idchambres")), Integer.parseInt(u.getString("idvoyageurs")), newDateString, Integer.parseInt(request.getParameter("nombreNuit")),prixnet))
-                    {
-                        Trouve = true;
-                    }  
-                    else{
-                        msg = "Aucune Chambre disponible 3!";
+           
+            
+            if(u != null){
+                    if(u.next()){
+                        if(bd.PaiementReservation(Integer.parseInt(request.getParameter("reservation")), Integer.parseInt(u.getString("idvoyageurs")))){
+                            msg="Le Paiement a été effectué avec succès !";
+                        }else{
+                            msg ="Vous vous etes trompé de numéro de reservation !";
+                        }
+                        
+                    }else{
+                        msg ="Vous vous êtes trompé de numéro de carte !";
                     }
-                }else{
-                     msg = "Aucune Chambre disponible 2!";
-                }
             }else{
-                 msg = "Aucune Chambre disponible 1!";
+                msg ="Vous vous êtes trompé de numéro de carte !";
             }
             
-            if(Trouve){
-               msg = "La chambre n°"+s.getString("idchambres")+ " a été reservé pour un total de : "+prixnet;
-            }else{
-               
-            }
+            session.setAttribute("reppay",msg );
+            response.sendRedirect(request.getContextPath() + "/ReponsePaiement.jsp");  
             
-            session.setAttribute("repres",msg );
-            response.sendRedirect(request.getContextPath() + "/ReponseReservation.jsp");  
+            
             
             
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(ReservationServlet.class.getName()).log(Level.SEVERE, null, ex);
-            response.sendRedirect(request.getContextPath() + "/ReponseReservation.jsp");
+            Logger.getLogger(PaiementServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -104,11 +90,7 @@ public class ReservationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-        } catch (ParseException ex) {
-            Logger.getLogger(ReservationServlet.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**
@@ -122,11 +104,7 @@ public class ReservationServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try {
-            processRequest(request, response);
-        } catch (ParseException ex) {
-            Logger.getLogger(ReservationServlet.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        processRequest(request, response);
     }
 
     /**

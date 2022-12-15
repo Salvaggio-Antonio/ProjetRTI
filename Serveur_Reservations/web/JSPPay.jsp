@@ -1,6 +1,6 @@
 <%-- 
-    Document   : ReponseReservation
-    Created on : 14-déc.-2022, 19:32:56
+    Document   : JSPPay
+    Created on : 15-déc.-2022, 6:26:14
     Author     : Salva
 --%>
 
@@ -14,18 +14,18 @@
     </head>
     <body>
         <% String user = (String)request.getSession().getAttribute("user");
-    
+   
         if(user== null){
             
             response.sendRedirect(request.getContextPath() + "/Login.jsp");
         } %>
-        <% String rep = (String)request.getSession().getAttribute("repres");%>
-        
         <div class="container">
-            <h1><%out.println(rep);%>!</h1>
-
-            <form action="InitCaddie" method="post" class="form-group">
-                <input type="submit" class="btn btn-primary" value="Retour à l'accueil">
+            <form action="PaiementServlet" class="form-group" method="post" >
+                <label>Veuillez saisir le numéro de réservation que voulez payer</label>
+                <input type="number" class="form-control" name="reservation">
+                <lable>Numéro de votre carte de crédit </lable>
+                <input type="text" class="form-control" name="credit">
+                <input type="submit" class="btn btn-primary" value="Payer">
             </form>
         </div>
         

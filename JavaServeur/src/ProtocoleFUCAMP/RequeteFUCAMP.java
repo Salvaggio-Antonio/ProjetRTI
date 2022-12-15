@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import database.facility.BDHolidays;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Hashtable;
@@ -39,8 +40,9 @@ public class RequeteFUCAMP implements Requete, Serializable {
     private int type;
     private Socket socketClient;
     public String chargeUtile;
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
+     File currentDirectory = new File(System.getProperty("user.dir"));
     
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     
     
     public RequeteFUCAMP(int t, String chu) throws ClassNotFoundException, SQLException {

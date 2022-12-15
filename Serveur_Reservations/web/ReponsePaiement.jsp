@@ -19,12 +19,12 @@
             
             response.sendRedirect(request.getContextPath() + "/Login.jsp");
         } %>
-        <% String rep = (String)request.getSession().getAttribute("repres");%>
+        <% String rep = (String)request.getSession().getAttribute("reppay");%>
         
         <div class="container">
             <h1><%out.println(rep);%>!</h1>
 
-            <form action="InitCaddie" method="post" class="form-group">
+            <form class="form-group" action="InitCaddie" method="post" >
                 <input type="submit" class="btn btn-primary" value="Retour à l'accueil">
             </form>
         </div>

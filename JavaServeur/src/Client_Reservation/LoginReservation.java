@@ -10,6 +10,7 @@ import ClientsActivite.ListeActivities;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
 import Utilities.Utils;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -29,8 +30,9 @@ public class LoginReservation extends javax.swing.JFrame {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
-
+     File currentDirectory = new File(System.getProperty("user.dir"));
+    
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     /**
      * Creates new form LoginActivite
      */

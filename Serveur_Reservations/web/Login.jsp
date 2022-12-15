@@ -13,20 +13,29 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h2>Login </h2> 
-         <form action="LoginServlet" method="POST" >
-                <label for="login "> Login :  </label>
-                <br>
-                <input type="text" name="login" required  >
-                <br>
+        <%String user = (String) request.getSession().getAttribute("user");
+        
+        if(user!= null){
+            
+            response.sendRedirect(request.getContextPath() + "/InitCaddie");
+        } %>
+        <div class="container">
+            <h2>Login </h2> 
+            <form action="LoginServlet" class ="form-group" method="POST" >
+                   <label for="login "> Login :  </label>
+                   <br>
+                   <input type="text" class="form-control" name="login" required  >
+                   <br>
 
-                <label for="passWord "> Password :  </label>
-                <br>
-                <input type="password" name="passWord" required=""  > <br><br>
-                <input type="checkbox" id="create" name="create">
-                <label for="create">Je veux créer un compte</label><br>
-                <br>
-                <input type="submit" value="envoyer" >
-            </form>
+                   <label for="passWord "> Password :  </label>
+                   <br>
+                   <input type="password" class="form-control" name="passWord" required=""  > <br><br>
+                   <input type="checkbox" class="form-check-input" id="create" name="create">
+                   <label for="create" class="form-check-label" >Je veux créer un compte</label><br>
+                   <br>
+                   <input type="submit" class="btn btn-primary" value="envoyer" >
+               </form>
+        </div>
+        
     </body>
 </html>

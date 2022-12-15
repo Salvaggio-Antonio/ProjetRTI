@@ -9,6 +9,7 @@ import ProtocoleFUCAMP.ReponseFUCAMP;
 import ProtocoleFUCAMP.RequeteFUCAMP;
 import Utilities.Utils;
 import database.facility.BDHolidays;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -30,7 +31,9 @@ public class InscriptionActivite extends javax.swing.JDialog {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-    public String path = "C:\\Users\\Salva\\Documents\\ecole\\important\\3emeinformatique\\rti\\Inpres-Enjoy your holidays\\JavaServeur\\src\\Config\\Config.config";
+     File currentDirectory = new File(System.getProperty("user.dir"));
+    
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public String id;
     public int duree;
 

@@ -34,6 +34,24 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         }
     }
     
+    public synchronized ResultSet checkUserByCredit(String Email, String mdp, String carte)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs where mail = ? AND motDepasse = ? and creditCard = ?;");
+            preparedStatement.setString(1, Email);
+            preparedStatement.setString(2, mdp);
+            preparedStatement.setString(3, carte);
+            
+            return preparedStatement.executeQuery();
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
     public synchronized ResultSet getAllActivities()
     {
         try
@@ -224,12 +242,12 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         }
     }
     
-    public synchronized ResultSet getChambreLibre(String categorie, String TypeChambre, String date, int nombreNuit)
+     public synchronized ResultSet getChambreLibre(String categorie, String TypeChambre, String date, int nombreNuit)
     {
         try
         {
             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM chambres left join reservations on (chambres.idchambres = reservations.id_chambre)"
-                    + " WHERE typelieu = ? and typechambre = ? and ( (  Date(DATE_ADD(?, INTERVAL ? DAY))<date_debut or Date(?)>date_fin ) or reservations.id_chambre is null)");
+                    + " WHERE typelieu = ? and typechambre = ? and (( DATE_ADD(?, INTERVAL ? DAY)<date_debut or ?>date_fin ) or reservations.id_chambre is null)");
             preparedStatement.setString(1, categorie);
             preparedStatement.setString(2, TypeChambre);
             preparedStatement.setString(3, date);
@@ -345,9 +363,29 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             preparedStatement.setInt(2, id_titulaire);
             preparedStatement.setString(3, date);
 
-            preparedStatement.execute();
+            int rowCount = preparedStatement.executeUpdate();
+            return rowCount > 0;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            
+            return false;
+        }
+    }
+    
+    public synchronized boolean PaiementReservation(int reservation , int id_titulaire)
+    {
+        try
+        {
+            PreparedStatement preparedStatement = connection.prepareStatement("update reservations set paye =true  where idreservations = ? and id_titulaire =?; ");
+            preparedStatement.setInt(1, reservation);
+            preparedStatement.setInt(2, id_titulaire);
 
-            return true;
+            
+            int rowCount = preparedStatement.executeUpdate();
+            return rowCount > 0;
+
         }
         catch (SQLException e)
         {
