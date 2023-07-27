@@ -10,6 +10,7 @@ import ClientsActivite.LoginActivite;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
 import Utilities.Utils;
+import com.raven.datechooser.SelectedDate;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -201,8 +202,9 @@ public class PaiementReservation extends javax.swing.JDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         RequeteROMP req = null;
+        SelectedDate date = dateChooser.getSelectedDate();
         try {
-            String env = jTextNom.getText()+":"+jTextEmail.getText()+":"+jTextCarte.getText()+":"+jTextNum.getText()+":"+jTextAnnee.getText()+"-"+jTextMois.getText()+"-"+jTextJour.getText();
+            String env = jTextNom.getText()+":"+jTextEmail.getText()+":"+jTextCarte.getText()+":"+jTextNum.getText()+":"+date.getYear()+"-"+date.getMonth()+"-"+date.getDay();
             
             req = new RequeteROMP(RequeteROMP.PROOM,  env );
             
@@ -243,11 +245,6 @@ public class PaiementReservation extends javax.swing.JDialog {
             { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
             catch (IOException e)
             { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
-
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);

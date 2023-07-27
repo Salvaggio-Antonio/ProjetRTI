@@ -242,11 +242,6 @@ public class ReserverChambre extends javax.swing.JDialog {
             { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
             catch (IOException e)
             { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
-
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);

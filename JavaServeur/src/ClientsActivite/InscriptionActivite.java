@@ -4,18 +4,20 @@
  * and open the template in the editor.
  */
 package ClientsActivite;
-
 import ProtocoleFUCAMP.ReponseFUCAMP;
 import ProtocoleFUCAMP.RequeteFUCAMP;
 import Utilities.Utils;
 import com.raven.datechooser.SelectedDate;
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
@@ -28,16 +30,13 @@ import javax.swing.table.DefaultTableModel;
  * @author Salva
  */
 public class InscriptionActivite extends javax.swing.JDialog {
-    
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
+    File currentDirectory = new File(System.getProperty("user.dir"));
+    public String path = currentDirectory + "\\src\\Config\\Config.config";
     public String id;
     public int duree;
-
     /**
      * Creates new form NewJDialog
      */
@@ -45,13 +44,11 @@ public class InscriptionActivite extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         this.id = id;
-        jLabelId.setText("id: "+id);
-        jLabelNom.setText("Nom: "+ nom);
-        jLabelType.setText("type: "+type);
-        jLabelDuree.setText(duree +" jours");
+        jLabelId.setText("id: " + id);
+        jLabelNom.setText("Nom: " + nom);
+        jLabelType.setText("type: " + type);
+        jLabelDuree.setText(duree + " jours");
         this.duree = Integer.parseInt(duree);
-       
-        
         //Connexion();
         initParticipants();
     }
@@ -255,127 +252,120 @@ public class InscriptionActivite extends javax.swing.JDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         SelectedDate d = dateChooser.getSelectedDate();
-        if(jTextNom.getText() != null && !jTextNom.getText().equals("") && jTextEmail.getText() != null && !jTextEmail.getText().equals("") ){
-            
-            RequeteFUCAMP req = null;
-        try {
-            String env = jTextNom.getText()+":"+jTextEmail.getText()+":"+d.getYear()+"-"+d.getMonth()+"-"+d.getDay()+":"+duree+":"+id ;
-            
-            req = new RequeteFUCAMP(RequeteFUCAMP.RESERVATIONACTIVITE, env );
-            
-            ois=null; oos=null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-            try
-            {
-                cliSock = new Socket(adresse, port);
-                System.out.println(cliSock.getInetAddress().toString());
-            }                       
-            catch (IOException ex) {
-                Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            // Envoie de la requête
-            System.out.println("envoie requete GetALLActivities !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
-            
-            // Lecture de la réponse
-            ReponseFUCAMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseFUCAMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-                
-                JOptionPane.showMessageDialog(null,"code : "+ rep.getCode()+" "+rep.getChargeUtile() , "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                initParticipants();
-            }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
+        LocalDate dateUtilisateur = LocalDate.of(d.getYear(), d.getMonth(), d.getDay());
+        if (dateUtilisateur.compareTo(LocalDate.now()) < 0) {
+            JOptionPane.showMessageDialog(null, "La date choisie est antérieur à la date d'aujourd'hui", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            if (jTextNom.getText() != null && !jTextNom.getText().equals("") && jTextEmail.getText() != null && !jTextEmail.getText().equals("")) {
+                RequeteFUCAMP req = null;
+                try {
+                    String env = jTextNom.getText() + ":" + jTextEmail.getText() + ":" + d.getYear() + "-" + d.getMonth() + "-" + d.getDay() + ":" + duree + ":" + id;
 
+                    req = new RequeteFUCAMP(RequeteFUCAMP.RESERVATIONACTIVITE, env);
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }   catch (IOException ex) {
-                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
+                    ois = null;
+                    oos = null;
+                    cliSock = null;
+                    String adresse = Utils.getItemConfig(path, "adresse");
+                    int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
+                    try {
+                        cliSock = new Socket(adresse, port);
+                        System.out.println(cliSock.getInetAddress().toString());
+                    } catch (IOException ex) {
+                        Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    // Envoie de la requête
+                    System.out.println("envoie requete GetALLActivities !");
+                    try {
+                        oos = new ObjectOutputStream(cliSock.getOutputStream());
+                        oos.writeObject(req);
+                        oos.flush();
+                    } catch (IOException e) {
+                        System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+                    }
+
+                    // Lecture de la réponse
+                    ReponseFUCAMP rep = null;
+                    System.out.println("en attente d'une réponse !");
+                    try {
+                        ois = new ObjectInputStream(cliSock.getInputStream());
+                        rep = (ReponseFUCAMP) ois.readObject();
+                        System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+
+                        JOptionPane.showMessageDialog(null, "code : " + rep.getCode() + " " + rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                        initParticipants();
+                    } catch (ClassNotFoundException e) {
+                        System.out.println("--- erreur sur la classe = " + e.getMessage());
+                    } catch (IOException e) {
+                        System.out.println("--- erreur IO = " + e.getMessage());
+                    }
+
+                } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SQLException ex) {
+                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Veuillez saisir tout les champs !!", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
             }
-            
-            
-        }else{
-            JOptionPane.showMessageDialog(null, "Veuillez saisir tout les champs !!", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
         }
+
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if(jTableP.getSelectedRow() != -1){
-                RequeteFUCAMP req = null;
-        try {
-            String env = id +":"+ jTableP.getValueAt(jTableP.getSelectedRow(), 0)+":" +jTableP.getValueAt(jTableP.getSelectedRow(), 4);
-            
-            req = new RequeteFUCAMP(RequeteFUCAMP.DELETERESERVATION, env );
-            
-            ois=null; oos=null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-            try
-            {
-                cliSock = new Socket(adresse, port);
-                System.out.println(cliSock.getInetAddress().toString());
-            }                       
-            catch (IOException ex) {
+        if (jTableP.getSelectedRow() != -1) {
+            RequeteFUCAMP req = null;
+            try {
+                String env = id + ":" + jTableP.getValueAt(jTableP.getSelectedRow(), 0) + ":" + jTableP.getValueAt(jTableP.getSelectedRow(), 4);
+
+                req = new RequeteFUCAMP(RequeteFUCAMP.DELETERESERVATION, env);
+
+                ois = null;
+                oos = null;
+                cliSock = null;
+                String adresse = Utils.getItemConfig(path, "adresse");
+                int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
+                try {
+                    cliSock = new Socket(adresse, port);
+                    System.out.println(cliSock.getInetAddress().toString());
+                } catch (IOException ex) {
+                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                // Envoie de la requête
+                System.out.println("envoie requete DELETERESERVATION !");
+                try {
+                    oos = new ObjectOutputStream(cliSock.getOutputStream());
+                    oos.writeObject(req);
+                    oos.flush();
+                } catch (IOException e) {
+                    System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
+                }
+
+                // Lecture de la réponse
+                ReponseFUCAMP rep = null;
+                System.out.println("en attente d'une réponse !");
+                try {
+                    ois = new ObjectInputStream(cliSock.getInputStream());
+                    rep = (ReponseFUCAMP) ois.readObject();
+                    System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+
+                    JOptionPane.showMessageDialog(null, "code : " + rep.getCode() + " " + rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                    initParticipants();
+                } catch (ClassNotFoundException e) {
+                    System.out.println("--- erreur sur la classe = " + e.getMessage());
+                } catch (IOException e) {
+                    System.out.println("--- erreur IO = " + e.getMessage());
+                }
+
+            } catch (ClassNotFoundException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            // Envoie de la requête
-            System.out.println("envoie requete DELETERESERVATION !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
-            
-            // Lecture de la réponse
-            ReponseFUCAMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseFUCAMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-                
-                JOptionPane.showMessageDialog(null,"code : "+ rep.getCode()+" "+rep.getChargeUtile() , "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                initParticipants();
-            }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
-
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }   catch (IOException ex) {
+            } catch (SQLException ex) {
+                Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
                 Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -431,8 +421,7 @@ public class InscriptionActivite extends javax.swing.JDialog {
             }
         });
     }
-    
-   
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.raven.datechooser.DateChooser dateChooser;
@@ -455,91 +444,83 @@ public class InscriptionActivite extends javax.swing.JDialog {
     private javax.swing.JTextField jTextNom;
     // End of variables declaration//GEN-END:variables
 
-    public void Connexion() throws IOException{
-        ois=null; oos=null; cliSock = null;
+    public void Connexion() throws IOException {
+        ois = null;
+        oos = null;
+        cliSock = null;
         String adresse = Utils.getItemConfig(path, "adresse");
         int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try
-        {
+        try {
             cliSock = new Socket(adresse, port);
             System.out.println(cliSock.getInetAddress().toString());
-        }                       
-        catch (IOException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
         }
         oos = new ObjectOutputStream(cliSock.getOutputStream());
-        
+
         ois = new ObjectInputStream(cliSock.getInputStream());
     }
-    public void  initParticipants() throws ClassNotFoundException, SQLException, IOException {
-        
+
+    public void initParticipants() throws ClassNotFoundException, SQLException, IOException {
+
         RequeteFUCAMP req = null;
-        req = new RequeteFUCAMP(RequeteFUCAMP.GETALLPARTICIPANTSBYACTIVITE, id );
-        ois=null; oos=null; cliSock = null;
+        req = new RequeteFUCAMP(RequeteFUCAMP.GETALLPARTICIPANTSBYACTIVITE, id);
+        ois = null;
+        oos = null;
+        cliSock = null;
         String adresse = Utils.getItemConfig(path, "adresse");
         int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try
-        {
+        try {
             cliSock = new Socket(adresse, port);
             System.out.println(cliSock.getInetAddress().toString());
-        }                       
-        catch (IOException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         System.out.println("envoie requete !");
-        try
-        {
+        try {
             oos = new ObjectOutputStream(cliSock.getOutputStream());
-            oos.writeObject(req); oos.flush();
+            oos.writeObject(req);
+            oos.flush();
+        } catch (IOException e) {
+            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-        catch (IOException e)
-        { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
         // Lecture de la réponse
         ReponseFUCAMP rep = null;
         System.out.println("en attente d'une réponse !");
-        try
-        {
+        try {
             ois = new ObjectInputStream(cliSock.getInputStream());
-            rep = (ReponseFUCAMP)ois.readObject();
+            rep = (ReponseFUCAMP) ois.readObject();
             System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
 
-            if(rep.getCode()== ReponseFUCAMP.OK){
-                
+            if (rep.getCode() == ReponseFUCAMP.OK) {
+
                 DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
-                while (model.getRowCount() != 0)
-                model.removeRow(0);
-                
+                while (model.getRowCount() != 0) {
+                    model.removeRow(0);
+                }
+
                 String r = rep.getChargeUtile();
                 String[] tmp = r.split(";");
-            
-                for(int i =0; i<tmp.length; i++){
-                    String []champs = tmp[i].split(":");
-                    model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3],champs[4]});
-                }   
-            }else if(rep.getCode()== ReponseFUCAMP.PARTICIPANTS_NOT_FOUND){
+
+                for (int i = 0; i < tmp.length; i++) {
+                    String[] champs = tmp[i].split(":");
+                    model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3], champs[4]});
+                }
+            } else if (rep.getCode() == ReponseFUCAMP.PARTICIPANTS_NOT_FOUND) {
                 DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
-                while (model.getRowCount() != 0)
-                model.removeRow(0);
-            }else{
+                while (model.getRowCount() != 0) {
+                    model.removeRow(0);
+                }
+            } else {
                 JOptionPane.showMessageDialog(null, "Probleme !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
             }
-            }
-        catch (ClassNotFoundException e)
-        { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-        catch (IOException e)
-        { System.out.println("--- erreur IO = " + e.getMessage()); }
-        
-        
-    
+        } catch (ClassNotFoundException e) {
+            System.out.println("--- erreur sur la classe = " + e.getMessage());
+        } catch (IOException e) {
+            System.out.println("--- erreur IO = " + e.getMessage());
+        }
+
     }
 
-
 }
-
-
-
-
-
-
-

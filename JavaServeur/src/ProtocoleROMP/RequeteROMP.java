@@ -9,7 +9,7 @@ package ProtocoleROMP;
 import Requete.Requete;
 import Serveurs.ConsoleServeur;
 import Utilities.Utils;
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;

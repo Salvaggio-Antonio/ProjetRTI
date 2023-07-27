@@ -1,6 +1,6 @@
 package testjdbc;
 
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

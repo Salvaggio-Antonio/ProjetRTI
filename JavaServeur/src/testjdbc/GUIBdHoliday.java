@@ -1,6 +1,6 @@
 package testjdbc;
 
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

@@ -15,7 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
