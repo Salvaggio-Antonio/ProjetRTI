@@ -5,15 +5,12 @@
  */
 package Client_Reservation;
 
-import ClientsActivite.InscriptionActivite;
 import ClientsActivite.LoginActivite;
-import ProtocoleFUCAMP.ReponseFUCAMP;
-import ProtocoleFUCAMP.RequeteFUCAMP;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
-import Utilities.Utils;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import com.raven.datechooser.SelectedDate;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -29,22 +26,20 @@ import javax.swing.JOptionPane;
  */
 public class ReserverChambre extends javax.swing.JDialog {
 
-    
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public String id;
     public int duree;
+    public Configuration config;
+
     /**
      * Creates new form ReserverChambre
      */
-    
-    public ReserverChambre(java.awt.Frame parent, boolean modal) {
+    public ReserverChambre(java.awt.Frame parent, boolean modal, Configuration c) throws IOException {
         super(parent, modal);
         initComponents();
+        config = c;
     }
 
     /**
@@ -198,58 +193,30 @@ public class ReserverChambre extends javax.swing.JDialog {
     }//GEN-LAST:event_jComboTypeActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        RequeteROMP req = null;
+        RequeteROMP req;
+        ReponseROMP rep;
         SelectedDate date = dateChooser.getSelectedDate();
+        ois = null;
+        oos = null;
+        cliSock = null;
+
         try {
-            String env = jTextNom.getText()+":"+jTextEmail.getText()+":"+jComboCategorie.getSelectedItem()+":"+jComboType.getSelectedItem()+":"+date.getYear()+"-"+date.getMonth()+"-"+date.getDay()+":"+jSpinnerNuits.getValue();
-            
-            req = new RequeteROMP(RequeteROMP.BROOM,  env );
-            
-            ois=null; oos=null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_RESERVATIONS"));
-            try
-            {
-                cliSock = new Socket(adresse, port);
+            String env = jTextNom.getText() + ":" + jTextEmail.getText() + ":" + jComboCategorie.getSelectedItem() + ":" + jComboType.getSelectedItem() + ":" + date.getYear() + "-" + date.getMonth() + "-" + date.getDay() + ":" + jSpinnerNuits.getValue();
+            req = new RequeteROMP(RequeteROMP.BROOM, env);
+            try {
+                cliSock = new Socket(config.getAdresse(), config.getPort());
                 System.out.println(cliSock.getInetAddress().toString());
-            }                       
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
-            // Envoie de la requête
-            System.out.println("envoie requete BROOM !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
+            RequeteUtils.SendRequest(req, "BROOM", oos, cliSock);
             
-            // Lecture de la réponse
-            ReponseROMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseROMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-                
-                JOptionPane.showMessageDialog(null,"code : "+ rep.getCode()+" "+rep.getChargeUtile() , "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                
-            }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-
-        } catch (ClassNotFoundException ex) {
+            rep = (ReponseROMP) RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
+            
+            JOptionPane.showMessageDialog(null, rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+        } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }   catch (IOException ex) {
-                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        }
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -257,47 +224,7 @@ public class ReserverChambre extends javax.swing.JDialog {
         dateChooser.showPopup();
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ReserverChambre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ReserverChambre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ReserverChambre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ReserverChambre.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                ReserverChambre dialog = new ReserverChambre(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.raven.datechooser.DateChooser dateChooser;

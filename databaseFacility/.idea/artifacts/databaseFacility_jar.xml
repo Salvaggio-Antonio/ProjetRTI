@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="databaseFacility:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/databaseFacility_jar</output-path>
+    <root id="archive" name="databaseFacility.jar">
+      <element id="module-output" name="databaseFacility" />
+    </root>
+  </artifact>
+</component>

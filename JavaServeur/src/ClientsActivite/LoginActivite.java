@@ -5,16 +5,15 @@
  */
 package ClientsActivite;
 
-import ClientsActivite.ListeActivities;
 import ProtocoleFUCAMP.RequeteFUCAMP;
 import ProtocoleFUCAMP.ReponseFUCAMP;
-import Utilities.Utils;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +28,7 @@ public class LoginActivite extends javax.swing.JFrame {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
+    public Configuration config;
      File currentDirectory = new File(System.getProperty("user.dir"));
     
     public String path = currentDirectory+"\\src\\Config\\Config.config";
@@ -37,6 +37,11 @@ public class LoginActivite extends javax.swing.JFrame {
      */
     public LoginActivite() {
         initComponents();
+        try {
+            config = new Configuration(path, "PORT_ACTIVITES");
+        } catch (IOException ex) {
+            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -139,90 +144,52 @@ public class LoginActivite extends javax.swing.JFrame {
                     
                     // Connexion au serveur
                     ois=null; oos=null; cliSock = null;
-                    String adresse = Utils.getItemConfig(path, "adresse");
-                    int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
+
                     try
                     {
-                        cliSock = new Socket(adresse, port);
+                        cliSock = new Socket(config.getAdresse(), config.getPort());
                         System.out.println(cliSock.getInetAddress().toString());
                     }                       
                     catch (IOException ex) {
                         Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     // Envoie de la requête
-                    System.out.println("envoie requete !");
-                    try
-                    {
-                        oos = new ObjectOutputStream(cliSock.getOutputStream());
-                        oos.writeObject(req); oos.flush();
-                    }
-                    catch (IOException e)
-                    { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
+                    RequeteUtils.SendRequest(req, "LOGIN", oos, cliSock);
                     // Lecture de la réponse
-                    ReponseFUCAMP rep = null;
-                    System.out.println("en attente d'une réponse !");
+                    ReponseFUCAMP rep;
                     try
                     {
-                        ois = new ObjectInputStream(cliSock.getInputStream());
-                        rep = (ReponseFUCAMP)ois.readObject();
-                        System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+                        rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
                         
                         if(rep.getCode()== ReponseFUCAMP.LOGIN_OK){
                             System.out.println("Vous vous etes connecté !");
                            
-                            ListeActivities la = new ListeActivities();
+                            ListeActivities la = new ListeActivities(config);
                             la.setVisible(true);
                             
                             this.dispose();
                         }else{
                             JOptionPane.showMessageDialog(null, "mot de passe eronné ou identifiant oublié !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                            
-
                         }
                     }
-                    catch (ClassNotFoundException e)
-                    { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
                     catch (IOException e)
                     { System.out.println("--- erreur IO = " + e.getMessage()); }
                     
                     
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SQLException ex) {
-                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
+                } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
-                
+
             }else
             {
-                JOptionPane.showMessageDialog(null, "Veuillez saisir le mot de passe !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                
+                JOptionPane.showMessageDialog(null, "Veuillez saisir le mot de passe !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE); 
             }
         }else
         {
             JOptionPane.showMessageDialog(null, "Veuillez saisir le nom d'utilisateur !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-            
         }
     }//GEN-LAST:event_jButton1ActionPerformed
-    
-    public void Connexion() throws IOException{
-        ois=null; oos=null; cliSock = null;
-        String adresse = "127.0.0.1";
-        int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try
-        {
-            cliSock = new Socket(adresse, port);
-            System.out.println(cliSock.getInetAddress().toString());
-        }                       
-        catch (IOException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        oos = new ObjectOutputStream(cliSock.getOutputStream());
-        
-        ois = new ObjectInputStream(cliSock.getInputStream());
-    }
+
     /**
      * @param args the command line arguments
      */

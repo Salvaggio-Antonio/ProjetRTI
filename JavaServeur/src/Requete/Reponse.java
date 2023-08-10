@@ -12,4 +12,6 @@ package Requete;
 public interface Reponse
 {
     public int getCode();
+    
+    public String getChargeUtile();
 }

@@ -7,10 +7,10 @@ package ClientsActivite;
 
 import ProtocoleFUCAMP.RequeteFUCAMP;
 import ProtocoleFUCAMP.ReponseFUCAMP;
-import Utilities.Utils;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,8 +18,6 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
@@ -36,13 +34,13 @@ public class ListeActivities extends javax.swing.JFrame {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
+    public Configuration config;
     
     
-    public ListeActivities( ) throws IOException {
+    public ListeActivities(Configuration c) throws IOException {
         initComponents();
+        
+        config = c;
         //Connexion();
         initActivities();
         
@@ -53,7 +51,7 @@ public class ListeActivities extends javax.swing.JFrame {
                JTable target = (JTable)me.getSource();
                int row = target.getSelectedRow(); // select a row
                 try {
-                    InscriptionActivite ia = new InscriptionActivite(null, true , (String) jTable1.getValueAt(row, 0),(String) jTable1.getValueAt(row, 1),(String) jTable1.getValueAt(row, 2),(String) jTable1.getValueAt(row, 3) );
+                    InscriptionActivite ia = new InscriptionActivite(null, true , (String) jTable1.getValueAt(row, 0),(String) jTable1.getValueAt(row, 1),(String) jTable1.getValueAt(row, 2),(String) jTable1.getValueAt(row, 3), config );
                     ia.setVisible(true);
                 } catch (IOException ex) {
                     Logger.getLogger(ListeActivities.class.getName()).log(Level.SEVERE, null, ex);
@@ -138,44 +136,7 @@ public class ListeActivities extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ListeActivities.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ListeActivities.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ListeActivities.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ListeActivities.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    new ListeActivities().setVisible(true);
-                } catch (IOException ex) {
-                    Logger.getLogger(ListeActivities.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-    }
+   
     
     public void initActivities() throws IOException{
         
@@ -185,42 +146,21 @@ public class ListeActivities extends javax.swing.JFrame {
             req = new RequeteFUCAMP(RequeteFUCAMP.GETALLACTIVITIES);
             
             ois=null; oos=null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
             try
             {
-                cliSock = new Socket(adresse, port);
+                cliSock = new Socket(config.getAdresse(), config.getPort());
                 System.out.println(cliSock.getInetAddress().toString());
             }                       
             catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
             // Envoie de la requête
-            System.out.println("envoie requete GetALLActivities !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
+           RequeteUtils.SendRequest(req, "GETALLACTIVITIES", oos, cliSock);
             
             // Lecture de la réponse
-            ReponseFUCAMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseFUCAMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-            }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
+            ReponseFUCAMP rep;
+            rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
+
             String []tmp = rep.getChargeUtile().split(";");
             
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -232,31 +172,11 @@ public class ListeActivities extends javax.swing.JFrame {
             
 
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+        } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    
-    //????
-    public void Connexion() throws IOException{
-        ois=null; oos=null; cliSock = null;
-        String adresse = Utils.getItemConfig(path, "adresse");
-        int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try
-        {
-            cliSock = new Socket(adresse, port);
-            System.out.println(cliSock.getInetAddress().toString());
-        }                       
-        catch (IOException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        oos = new ObjectOutputStream(cliSock.getOutputStream());
-        
-        ois = new ObjectInputStream(cliSock.getInputStream());
-    }
+
     
     
 

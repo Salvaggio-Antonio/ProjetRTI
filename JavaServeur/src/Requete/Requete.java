@@ -9,10 +9,7 @@ package Requete;
 import Serveurs.ConsoleServeur;
 import java.net.Socket;
 
-/**
- *
- * @author oussa
- */
+
 public interface Requete {
     public Runnable createRunnable (Socket s, ConsoleServeur cs); 
 }

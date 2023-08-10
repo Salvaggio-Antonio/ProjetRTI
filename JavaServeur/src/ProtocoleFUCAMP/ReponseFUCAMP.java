@@ -30,7 +30,9 @@ public class ReponseFUCAMP implements Reponse, Serializable {
     {
         codeRetour = c; setChargeUtile(chu);
     }
+    @Override
     public int getCode() { return codeRetour; }
+    @Override
     public String getChargeUtile() { return chargeUtile; }
     public void setChargeUtile(String chargeUtile) { this.chargeUtile = chargeUtile; }
 }

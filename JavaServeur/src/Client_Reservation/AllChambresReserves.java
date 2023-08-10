@@ -5,12 +5,11 @@
  */
 package Client_Reservation;
 
-import ClientsActivite.InscriptionActivite;
 import ClientsActivite.LoginActivite;
-import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
-import Utilities.Utils;
-import java.io.File;
+import Requete.Reponse;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,7 +18,6 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -30,89 +28,53 @@ public class AllChambresReserves extends javax.swing.JDialog {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public String id;
     public int duree;
+    public Configuration config;
     /**
      * Creates new form AllChambresReserves
      */
-    public AllChambresReserves(java.awt.Frame parent, boolean modal) {
+    public AllChambresReserves(java.awt.Frame parent, boolean modal, Configuration c) {
         super(parent, modal);
         initComponents();
+        config = c;
+
+
         initChambresReserve();
         
     }
     
     void initChambresReserve(){
-        
         RequeteROMP req = null;
         try {
-            
             req = new RequeteROMP(RequeteROMP.LROOMS,  "" );
-            
             ois=null; oos=null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_RESERVATIONS"));
             try
             {
-                cliSock = new Socket(adresse, port);
+                cliSock = new Socket(config.getAdresse(), config.getPort());
                 System.out.println(cliSock.getInetAddress().toString());
             }                       
             catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
-            // Envoie de la requête
-            System.out.println("envoie requete LROOMS !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
+            
+            RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
             
             // Lecture de la réponse
-            ReponseROMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseROMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-                
-                String[] recu = rep.getChargeUtile().split(":");
-                
-                DefaultListModel listModel = new DefaultListModel();
-                
-                for(int i=0; i< recu.length; i++){
-                    listModel.addElement(recu[i]);
-                }
-                jList1.setModel(listModel);
-                
-                
-                
+            Reponse rep;
+            rep = RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
+            
+            String[] recu = rep.getChargeUtile().split(":");
+            DefaultListModel listModel = new DefaultListModel();
+            for(int i=0; i< recu.length; i++){
+                listModel.addElement(recu[i]);
             }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
+            jList1.setModel(listModel);
 
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }   catch (IOException ex) {
-                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        
-        
     }
 
     /**
@@ -161,47 +123,8 @@ public class AllChambresReserves extends javax.swing.JDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AllChambresReserves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AllChambresReserves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AllChambresReserves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AllChambresReserves.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                AllChambresReserves dialog = new AllChambresReserves(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+    
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;

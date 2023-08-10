@@ -26,30 +26,30 @@ import java.util.Hashtable;
  * @author Salva
  */
 public class RequeteFUCAMP implements Requete, Serializable {
-    
+
     public static final int LOGIN = 1;
-    public static final int GETALLACTIVITIES =2;
-    public static final int GETALLPARTICIPANTSBYACTIVITE=3;
-    public static final int RESERVATIONACTIVITE=4;
-    public static final int DELETERESERVATION=5;
+    public static final int GETALLACTIVITIES = 2;
+    public static final int GETALLPARTICIPANTSBYACTIVITE = 3;
+    public static final int RESERVATIONACTIVITE = 4;
+    public static final int DELETERESERVATION = 5;
 
     /**
      *
      */
-    public BDHolidays bd ;
+    public BDHolidays bd;
     private int type;
     private Socket socketClient;
     public String chargeUtile;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
-    
-    
+    File currentDirectory = new File(System.getProperty("user.dir"));
+
+    public String path = currentDirectory + "\\src\\Config\\Config.config";
+
     public RequeteFUCAMP(int t, String chu) throws ClassNotFoundException, SQLException {
         type = t;
         setChargeUtile(chu);
-        
+
     }
+
     public RequeteFUCAMP(int t) throws ClassNotFoundException, SQLException {
         type = t;
     }
@@ -70,9 +70,10 @@ public class RequeteFUCAMP implements Requete, Serializable {
 
     @Override
     public Runnable createRunnable(Socket s, ConsoleServeur cs) {
-       
-        switch(type){
-            case LOGIN:return new Runnable() {
+
+        switch (type) {
+            case LOGIN:
+                return new Runnable() {
                     public void run() {
                         try {
                             TraitementLogin(s, cs);
@@ -85,8 +86,9 @@ public class RequeteFUCAMP implements Requete, Serializable {
                         }
                     }
                 };
-            
-            case GETALLACTIVITIES:return new Runnable() {
+
+            case GETALLACTIVITIES:
+                return new Runnable() {
                     public void run() {
                         try {
                             getAllActivities(s, cs);
@@ -97,7 +99,8 @@ public class RequeteFUCAMP implements Requete, Serializable {
                         }
                     }
                 };
-            case GETALLPARTICIPANTSBYACTIVITE :return new Runnable() {
+            case GETALLPARTICIPANTSBYACTIVITE:
+                return new Runnable() {
                     public void run() {
                         try {
                             getAllParticipantsByActivite(s, cs);
@@ -106,10 +109,11 @@ public class RequeteFUCAMP implements Requete, Serializable {
                         }
                     }
                 };
-            case RESERVATIONACTIVITE :return new Runnable() {
+            case RESERVATIONACTIVITE:
+                return new Runnable() {
                     public void run() {
                         try {
-                            reservationActivite(s,cs);
+                            reservationActivite(s, cs);
                         } catch (ClassNotFoundException ex) {
                             Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
                         } catch (SQLException ex) {
@@ -117,90 +121,83 @@ public class RequeteFUCAMP implements Requete, Serializable {
                         }
                     }
                 };
-            case DELETERESERVATION :return new Runnable() {
+            case DELETERESERVATION:
+                return new Runnable() {
                     public void run() {
                         try {
-                            suppReservationActivite(s,cs);
-                                    } catch (ClassNotFoundException ex) {
+                            suppReservationActivite(s, cs);
+                        } catch (ClassNotFoundException ex) {
                             Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
                         } catch (SQLException ex) {
                             Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                 };
-            default : return null;
+            default:
+                return null;
         }
     }
-    
-    public void TraitementLogin(Socket sock, ConsoleServeur cs) throws SQLException, IOException, ClassNotFoundException{
-        
-        
+
+    public void TraitementLogin(Socket sock, ConsoleServeur cs) throws SQLException, IOException, ClassNotFoundException {
+
         String[] tmp = getChargeUtile().split(";");
- 
+
         String[] user = Utils.getItemConfig(path, "ADMIN").split(";");
-        
-        String log  = user[0];
+
+        String log = user[0];
         String pass = user[1];
-        
+
         ReponseFUCAMP rep;
-        if(log.equals(tmp[0]) && pass.equals(tmp[1]) ){
-             rep = new ReponseFUCAMP(ReponseFUCAMP.LOGIN_OK, getChargeUtile() +" : " + "ca marche");
-        }
-        else{
-             rep = new ReponseFUCAMP(ReponseFUCAMP.WRONG_PASSWORD, getChargeUtile() +" : " + "probleme !!");
+        if (log.equals(tmp[0]) && pass.equals(tmp[1])) {
+            rep = new ReponseFUCAMP(ReponseFUCAMP.LOGIN_OK, getChargeUtile() + " : " + "ca marche");
+        } else {
+            rep = new ReponseFUCAMP(ReponseFUCAMP.WRONG_PASSWORD, getChargeUtile() + " : " + "probleme !!");
 
         }
-        
-        
+
         ObjectOutputStream oos;
-        try
-        {
+        try {
             oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
+            oos.writeObject(rep);
+            oos.flush();
             oos.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-         
-         
-         
+
     }
-    
-    public void getAllActivities(Socket sock , ConsoleServeur cs) throws ClassNotFoundException, SQLException{
-        
-        BDHolidays bd =new BDHolidays("root", "root", "bd_holidays");
-        
+
+    public void getAllActivities(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
+
+        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
+
         System.out.println("JE SUIS DANS GETALLACTIVITIES");
         ResultSet s = bd.getAllActivities();
-        
+
         chargeUtile = "";
-        while (s.next()){
-            
-            chargeUtile= chargeUtile + s.getString("idactivites")+":"+s.getString("nom")+":"+s.getString("type")+":"+s.getString("duree")+";"; ;
-           
+        while (s.next()) {
+
+            chargeUtile = chargeUtile + s.getString("idactivites") + ":" + s.getString("nom") + ":" + s.getString("type") + ":" + s.getString("duree") + ";";;
+
         }
         System.out.println(chargeUtile);
         ReponseFUCAMP rep;
         rep = new ReponseFUCAMP(ReponseFUCAMP.OK, getChargeUtile());
-        
+
         ObjectOutputStream oos;
-        try
-        {
+        try {
             oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
+            oos.writeObject(rep);
+            oos.flush();
             oos.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-  
+
     }
-    
-    public void getAllParticipantsByActivite(Socket sock, ConsoleServeur cs) throws SQLException{
-        
+
+    public void getAllParticipantsByActivite(Socket sock, ConsoleServeur cs) throws SQLException {
+
         BDHolidays bd = null;
         try {
             bd = new BDHolidays("root", "root", "bd_holidays");
@@ -214,106 +211,96 @@ public class RequeteFUCAMP implements Requete, Serializable {
         ResultSet s = bd.getAllParticipantsByActivite(Integer.parseInt(getChargeUtile()));
 
         chargeUtile = "";
-        while (s.next()){
+        while (s.next()) {
 
-            chargeUtile= chargeUtile + s.getString("idvoyageurs")+":"+s.getString("nom")+":"+s.getString("prenom")+":"+s.getString("mail")+":"+s.getString("date_debut")+";";
+            chargeUtile = chargeUtile + s.getString("idvoyageurs") + ":" + s.getString("nom") + ":" + s.getString("prenom") + ":" + s.getString("mail") + ":" + s.getString("date_debut") + ";";
 
         }
         ReponseFUCAMP rep;
-        if(!chargeUtile.equals("") && chargeUtile != null){
+        if (!chargeUtile.equals("") && chargeUtile != null) {
             rep = new ReponseFUCAMP(ReponseFUCAMP.OK, getChargeUtile());
 
-        }else{
-             rep = new ReponseFUCAMP(ReponseFUCAMP.PARTICIPANTS_NOT_FOUND, getChargeUtile());
+        } else {
+            rep = new ReponseFUCAMP(ReponseFUCAMP.PARTICIPANTS_NOT_FOUND, getChargeUtile());
         }
-        
+
         ObjectOutputStream oos;
-        try
-        {
+        try {
             oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
+            oos.writeObject(rep);
+            oos.flush();
             oos.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-          
+
     }
-    
-    public void suppReservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException{
-        
-        
-        BDHolidays bd =new BDHolidays("root", "root", "bd_holidays");
-        System.out.println("JE SUIS DANS DELETERESERVATION"); 
+
+    public void suppReservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
+
+        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
+        System.out.println("JE SUIS DANS DELETERESERVATION");
         ReponseFUCAMP rep;
-        
+
         String[] recu = getChargeUtile().split(":");
-        
-        Boolean  d = bd.DeleteReservationActivite(Integer.parseInt(recu[0]), Integer.parseInt(recu[1]), recu[2]);
-        
-        if(d){
+
+        Boolean d = bd.DeleteReservationActivite(Integer.parseInt(recu[0]), Integer.parseInt(recu[1]), recu[2]);
+
+        if (d) {
 
             rep = new ReponseFUCAMP(ReponseFUCAMP.OK, "suppression reussi !");
-        }else
-        {
+        } else {
             rep = new ReponseFUCAMP(ReponseFUCAMP.ERREURSUPPRESSION, "suppression raté !!");
         }
-      
-        
+
         ObjectOutputStream oos;
-        try
-        {
+        try {
             oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
+            oos.writeObject(rep);
+            oos.flush();
             oos.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-        
-        
+
     }
-    
-    public void reservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException{
-        
-        
-        BDHolidays bd =new BDHolidays("root", "root", "bd_holidays");
-        System.out.println("JE SUIS DANS RESERVATIONACTIVITE"); 
+
+    public void reservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
+
+        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
+        System.out.println("JE SUIS DANS RESERVATIONACTIVITE");
         ReponseFUCAMP rep;
-        
+
         String[] recu = getChargeUtile().split(":");
-        
+
         ResultSet s = bd.getVoyageursByEmailandName(recu[1], recu[0]);
-        
-        if(s.next()){
-            
-            if(bd.insertReservationActivite(Integer.parseInt(recu[4]), Integer.parseInt(s.getString("idvoyageurs")) , recu[2], Integer.parseInt(recu[3]))){
-                rep = new ReponseFUCAMP(ReponseFUCAMP.OK, "insertion reussi !");
-            }else{
-                rep = new ReponseFUCAMP(ReponseFUCAMP.ERREURINSERTION, "insertion raté !!");
+
+        if (s.next()) {
+            if (bd.checkReservationActivite(Integer.parseInt(recu[4]), Integer.parseInt(s.getString("idvoyageurs")), recu[2])) {
+                if (bd.insertReservationActivite(Integer.parseInt(recu[4]), Integer.parseInt(s.getString("idvoyageurs")), recu[2], Integer.parseInt(recu[3]))) {
+                    rep = new ReponseFUCAMP(ReponseFUCAMP.OK, "insertion reussi !");
+                } else {
+                    rep = new ReponseFUCAMP(ReponseFUCAMP.ERREURINSERTION, "insertion raté !!");
+                }
             }
-            
-        }else
-        {
+            else{
+                rep = new ReponseFUCAMP(ReponseFUCAMP.ERREURINSERTION, "L'utilisateur est déja inscrit à cette date !!");
+            }
+
+        } else {
             rep = new ReponseFUCAMP(ReponseFUCAMP.EMAIL_NOT_FOUND, "l'adresse mail ou le nom du voyageur n'a pas été trouvé");
         }
-        
+
         ObjectOutputStream oos;
-        try
-        {
+        try {
             oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep); oos.flush();
+            oos.writeObject(rep);
+            oos.flush();
             oos.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
         }
-        
-        
+
     }
-    
-    
+
 }

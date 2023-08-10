@@ -4,24 +4,20 @@
  * and open the template in the editor.
  */
 package ClientsActivite;
+
 import ProtocoleFUCAMP.ReponseFUCAMP;
 import ProtocoleFUCAMP.RequeteFUCAMP;
-import Utilities.Utils;
 import com.raven.datechooser.SelectedDate;
-import Holidays.BDHolidays;
-import java.io.File;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -30,17 +26,18 @@ import javax.swing.table.DefaultTableModel;
  * @author Salva
  */
 public class InscriptionActivite extends javax.swing.JDialog {
+
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-    File currentDirectory = new File(System.getProperty("user.dir"));
-    public String path = currentDirectory + "\\src\\Config\\Config.config";
     public String id;
     public int duree;
+    public Configuration config;
+
     /**
      * Creates new form NewJDialog
      */
-    public InscriptionActivite(java.awt.Frame parent, boolean modal, String id, String nom, String type, String duree) throws IOException, ClassNotFoundException, SQLException {
+    public InscriptionActivite(java.awt.Frame parent, boolean modal, String id, String nom, String type, String duree, Configuration c) throws IOException, ClassNotFoundException, SQLException {
         super(parent, modal);
         initComponents();
         this.id = id;
@@ -49,12 +46,9 @@ public class InscriptionActivite extends javax.swing.JDialog {
         jLabelType.setText("type: " + type);
         jLabelDuree.setText(duree + " jours");
         this.duree = Integer.parseInt(duree);
+        config = c;
         //Connexion();
         initParticipants();
-    }
-
-    private InscriptionActivite(JFrame jFrame, boolean b) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     /**
@@ -257,7 +251,8 @@ public class InscriptionActivite extends javax.swing.JDialog {
             JOptionPane.showMessageDialog(null, "La date choisie est antérieur à la date d'aujourd'hui", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
         } else {
             if (jTextNom.getText() != null && !jTextNom.getText().equals("") && jTextEmail.getText() != null && !jTextEmail.getText().equals("")) {
-                RequeteFUCAMP req = null;
+                RequeteFUCAMP req;
+                ReponseFUCAMP rep;
                 try {
                     String env = jTextNom.getText() + ":" + jTextEmail.getText() + ":" + d.getYear() + "-" + d.getMonth() + "-" + d.getDay() + ":" + duree + ":" + id;
 
@@ -266,59 +261,37 @@ public class InscriptionActivite extends javax.swing.JDialog {
                     ois = null;
                     oos = null;
                     cliSock = null;
-                    String adresse = Utils.getItemConfig(path, "adresse");
-                    int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
                     try {
-                        cliSock = new Socket(adresse, port);
+                        cliSock = new Socket(config.getAdresse(), config.getPort());
                         System.out.println(cliSock.getInetAddress().toString());
                     } catch (IOException ex) {
                         Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     // Envoie de la requête
-                    System.out.println("envoie requete GetALLActivities !");
-                    try {
-                        oos = new ObjectOutputStream(cliSock.getOutputStream());
-                        oos.writeObject(req);
-                        oos.flush();
-                    } catch (IOException e) {
-                        System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-                    }
+                    RequeteUtils.SendRequest(req, "RESERVATIONACTIVITE", oos, cliSock);
 
                     // Lecture de la réponse
-                    ReponseFUCAMP rep = null;
-                    System.out.println("en attente d'une réponse !");
-                    try {
-                        ois = new ObjectInputStream(cliSock.getInputStream());
-                        rep = (ReponseFUCAMP) ois.readObject();
-                        System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+                    rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
+                    
+                    JOptionPane.showMessageDialog(null,rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
 
-                        JOptionPane.showMessageDialog(null, "code : " + rep.getCode() + " " + rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                        initParticipants();
-                    } catch (ClassNotFoundException e) {
-                        System.out.println("--- erreur sur la classe = " + e.getMessage());
-                    } catch (IOException e) {
-                        System.out.println("--- erreur IO = " + e.getMessage());
-                    }
-
-                } catch (ClassNotFoundException ex) {
+                } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SQLException ex) {
-                    Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
-                    Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
             } else {
                 JOptionPane.showMessageDialog(null, "Veuillez saisir tout les champs !!", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
             }
+            try {
+                initParticipants();
+            } catch (ClassNotFoundException | SQLException | IOException ex) {
+                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-
-
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         if (jTableP.getSelectedRow() != -1) {
-            RequeteFUCAMP req = null;
+            RequeteFUCAMP req;
             try {
                 String env = id + ":" + jTableP.getValueAt(jTableP.getSelectedRow(), 0) + ":" + jTableP.getValueAt(jTableP.getSelectedRow(), 4);
 
@@ -327,45 +300,25 @@ public class InscriptionActivite extends javax.swing.JDialog {
                 ois = null;
                 oos = null;
                 cliSock = null;
-                String adresse = Utils.getItemConfig(path, "adresse");
-                int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
                 try {
-                    cliSock = new Socket(adresse, port);
+                    cliSock = new Socket(config.getAdresse(), config.getPort());
                     System.out.println(cliSock.getInetAddress().toString());
                 } catch (IOException ex) {
                     Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                // Envoie de la requête
-                System.out.println("envoie requete DELETERESERVATION !");
-                try {
-                    oos = new ObjectOutputStream(cliSock.getOutputStream());
-                    oos.writeObject(req);
-                    oos.flush();
-                } catch (IOException e) {
-                    System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-                }
 
-                // Lecture de la réponse
-                ReponseFUCAMP rep = null;
-                System.out.println("en attente d'une réponse !");
-                try {
-                    ois = new ObjectInputStream(cliSock.getInputStream());
-                    rep = (ReponseFUCAMP) ois.readObject();
-                    System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+                RequeteUtils.SendRequest(req, "DELETERESERVATION", oos, cliSock);
+                ReponseFUCAMP r;
+                r = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
+                
+                JOptionPane.showMessageDialog(null, "code : " + r.getCode(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
 
-                    JOptionPane.showMessageDialog(null, "code : " + rep.getCode() + " " + rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                    initParticipants();
-                } catch (ClassNotFoundException e) {
-                    System.out.println("--- erreur sur la classe = " + e.getMessage());
-                } catch (IOException e) {
-                    System.out.println("--- erreur IO = " + e.getMessage());
-                }
-
-            } catch (ClassNotFoundException ex) {
+            } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
+            }
+            try {
+                initParticipants();
+            } catch (ClassNotFoundException | SQLException | IOException ex) {
                 Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -378,49 +331,6 @@ public class InscriptionActivite extends javax.swing.JDialog {
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         dateChooser.showPopup();
     }//GEN-LAST:event_jButton3ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(InscriptionActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(InscriptionActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(InscriptionActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(InscriptionActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                InscriptionActivite dialog = new InscriptionActivite(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -444,81 +354,47 @@ public class InscriptionActivite extends javax.swing.JDialog {
     private javax.swing.JTextField jTextNom;
     // End of variables declaration//GEN-END:variables
 
-    public void Connexion() throws IOException {
-        ois = null;
-        oos = null;
-        cliSock = null;
-        String adresse = Utils.getItemConfig(path, "adresse");
-        int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try {
-            cliSock = new Socket(adresse, port);
-            System.out.println(cliSock.getInetAddress().toString());
-        } catch (IOException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        oos = new ObjectOutputStream(cliSock.getOutputStream());
-
-        ois = new ObjectInputStream(cliSock.getInputStream());
-    }
-
     public void initParticipants() throws ClassNotFoundException, SQLException, IOException {
 
-        RequeteFUCAMP req = null;
+        RequeteFUCAMP req;
         req = new RequeteFUCAMP(RequeteFUCAMP.GETALLPARTICIPANTSBYACTIVITE, id);
         ois = null;
         oos = null;
         cliSock = null;
-        String adresse = Utils.getItemConfig(path, "adresse");
-        int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
+
         try {
-            cliSock = new Socket(adresse, port);
+            cliSock = new Socket(config.getAdresse(), config.getPort());
             System.out.println(cliSock.getInetAddress().toString());
         } catch (IOException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        System.out.println("envoie requete !");
-        try {
-            oos = new ObjectOutputStream(cliSock.getOutputStream());
-            oos.writeObject(req);
-            oos.flush();
-        } catch (IOException e) {
-            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-        }
+        RequeteUtils.SendRequest(req, "GETALLPARTICIPANTSBYACTIVITE", oos, cliSock);
         // Lecture de la réponse
-        ReponseFUCAMP rep = null;
-        System.out.println("en attente d'une réponse !");
-        try {
-            ois = new ObjectInputStream(cliSock.getInputStream());
-            rep = (ReponseFUCAMP) ois.readObject();
-            System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+        ReponseFUCAMP rep;
 
-            if (rep.getCode() == ReponseFUCAMP.OK) {
+        rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
+        if (rep.getCode() == ReponseFUCAMP.OK) {
 
-                DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
-                while (model.getRowCount() != 0) {
-                    model.removeRow(0);
-                }
-
-                String r = rep.getChargeUtile();
-                String[] tmp = r.split(";");
-
-                for (int i = 0; i < tmp.length; i++) {
-                    String[] champs = tmp[i].split(":");
-                    model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3], champs[4]});
-                }
-            } else if (rep.getCode() == ReponseFUCAMP.PARTICIPANTS_NOT_FOUND) {
-                DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
-                while (model.getRowCount() != 0) {
-                    model.removeRow(0);
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Probleme !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+            DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
+            while (model.getRowCount() != 0) {
+                model.removeRow(0);
             }
-        } catch (ClassNotFoundException e) {
-            System.out.println("--- erreur sur la classe = " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("--- erreur IO = " + e.getMessage());
+           
+            String r = rep.getChargeUtile();
+            String[] tmp = r.split(";");
+
+            for (int i = 0; i < tmp.length; i++) {
+                String[] champs = tmp[i].split(":");
+                model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3], champs[4]});
+            }
+        } else if (rep.getCode() == ReponseFUCAMP.PARTICIPANTS_NOT_FOUND) {
+            DefaultTableModel model = (DefaultTableModel) jTableP.getModel();
+            while (model.getRowCount() != 0) {
+                model.removeRow(0);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Probleme !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
         }
 
     }

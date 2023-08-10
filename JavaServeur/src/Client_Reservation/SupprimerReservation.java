@@ -1,25 +1,24 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Client_Reservation;
 
-import ClientsActivite.InscriptionActivite;
-import ClientsActivite.LoginActivite;
+import Custom.Cell.TableActionCellEditor;
+import Custom.Cell.TableActionCellRender;
+import Custom.Cell.TableActionEvent;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
-import Utilities.Utils;
-import com.raven.datechooser.SelectedDate;
-import java.io.File;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -30,17 +29,50 @@ public class SupprimerReservation extends javax.swing.JDialog {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
-    public String path = currentDirectory+"\\src\\Config\\Config.config";
     public String id;
     public int duree;
+    Configuration config;
+
     /**
      * Creates new form PaimentReservation
      */
-    public SupprimerReservation(java.awt.Frame parent, boolean modal) {
+    public SupprimerReservation(java.awt.Frame parent, boolean modal, Configuration c) {
         super(parent, modal);
         initComponents();
+        config = c;
+        try {
+            fillTableAction_reservation();
+        } catch (SQLException ex) {
+            Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        TableActionEvent event = new TableActionEvent() {
+            @Override
+            public void onDelete(int row) {
+                if (table.isEditing()) {
+                    table.getCellEditor().stopCellEditing();
+
+                }
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                if(checkReservation((String) model.getValueAt(row, 3)))
+                {
+                    if( deleteReservation((String) model.getValueAt(row, 0)))
+                    {
+                        model.removeRow(row);  
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(null,"Une erreur est survenue", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+                else
+                {
+                    JOptionPane.showMessageDialog(null,"La date a été dépassé", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        };
+        table.getColumnModel().getColumn(4).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(4).setCellEditor(new TableActionCellEditor(event));
     }
 
     /**
@@ -53,268 +85,147 @@ public class SupprimerReservation extends javax.swing.JDialog {
     private void initComponents() {
 
         dateChooser = new com.raven.datechooser.DateChooser();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jTextEmail = new javax.swing.JTextField();
-        jTextNom = new javax.swing.JTextField();
-        jTextNum = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        datetxt = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        table = new javax.swing.JTable();
 
         dateChooser.setDateFormat("dd-MMMM-yyyy");
-        dateChooser.setTextRefernce(datetxt);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText("Nom");
+        table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        jLabel2.setText("Email");
+            },
+            new String [] {
+                "N° Réservation ", "Nom", "N° Chambre", "Date", "Action"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, true
+            };
 
-        jLabel4.setText("Date ");
-
-        jTextEmail.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextEmailActionPerformed(evt);
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
-
-        jTextNom.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextNomActionPerformed(evt);
-            }
-        });
-
-        jTextNum.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextNumActionPerformed(evt);
-            }
-        });
-
-        jLabel5.setText("Numéro de chambre");
-
-        jButton1.setText("Suppression");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        datetxt.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                datetxtActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("...");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        table.setRowHeight(50);
+        jScrollPane1.setViewportView(table);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(52, 52, 52)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jTextEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(32, 32, 32)
-                            .addComponent(jTextNom, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel4)
-                        .addGap(34, 34, 34)
-                        .addComponent(datetxt, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(36, 36, 36)
-                        .addComponent(jTextNum, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(87, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(134, 134, 134))
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextNom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jTextNum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(22, 22, 22)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(datetxt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2))
-                .addGap(18, 18, 18)
-                .addComponent(jButton1)
-                .addContainerGap(12, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 348, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextEmailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextEmailActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextEmailActionPerformed
-
-    private void jTextNomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextNomActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextNomActionPerformed
-
-    private void jTextNumActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextNumActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextNumActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    RequeteROMP req = null;
-    SelectedDate date = dateChooser.getSelectedDate();
-        try {
-            String env = jTextNom.getText()+":"+jTextEmail.getText()+":"+jTextNum.getText()+":"+date.getYear()+"-"+date.getMonth()+"-"+date.getDay();
-            
-            req = new RequeteROMP(RequeteROMP.CROOM,  env );
-            
-            ois = null; oos = null; cliSock = null;
-            String adresse = Utils.getItemConfig(path, "adresse");
-            int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_RESERVATIONS"));
-            try
-            {
-                cliSock = new Socket(adresse, port);
-                System.out.println(cliSock.getInetAddress().toString());
-            }                       
-            catch (IOException ex) {
-                Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            // Envoie de la requête
-            System.out.println("envoie requete CROOM !");
-            try
-            {
-                oos = new ObjectOutputStream(cliSock.getOutputStream());
-                oos.writeObject(req); oos.flush();
-            }
-            catch (IOException e)
-            { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
-            
-            // Lecture de la réponse
-            ReponseROMP rep = null;
-            System.out.println("en attente d'une réponse !");
-            try
-            {
-                ois = new ObjectInputStream(cliSock.getInputStream());
-                rep = (ReponseROMP)ois.readObject();
-                System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
-                
-                JOptionPane.showMessageDialog(null,"code : "+ rep.getCode()+" "+rep.getChargeUtile() , "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                
-            }
-            catch (ClassNotFoundException e)
-            { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-            catch (IOException e)
-            { System.out.println("--- erreur IO = " + e.getMessage()); }
-            
-            
-            
-            
-
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
-        }   catch (IOException ex) {
-                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
-            }        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void datetxtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_datetxtActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_datetxtActionPerformed
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        dateChooser.showPopup();
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SupprimerReservation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SupprimerReservation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SupprimerReservation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SupprimerReservation.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                SupprimerReservation dialog = new SupprimerReservation(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.raven.datechooser.DateChooser dateChooser;
-    private javax.swing.JTextField datetxt;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JTextField jTextEmail;
-    private javax.swing.JTextField jTextNom;
-    private javax.swing.JTextField jTextNum;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable table;
     // End of variables declaration//GEN-END:variables
+
+    public void fillTableAction_reservation() throws SQLException {
+        RequeteROMP req = null;
+        try {
+            req = new RequeteROMP(RequeteROMP.LROOMS);
+
+            ois = null;
+            oos = null;
+            cliSock = null;
+            try {
+                cliSock = new Socket(config.getAdresse(), config.getPort());
+                System.out.println(cliSock.getInetAddress().toString());
+            } catch (IOException ex) {
+                Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            // Envoie de la requête
+            RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
+
+            // Lecture de la réponse
+            ReponseROMP rep;
+            rep = (ReponseROMP) RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
+
+            String[] tmp = rep.getChargeUtile().split(":");
+
+            DefaultTableModel model = (DefaultTableModel) table.getModel();
+
+            for (int i = 0; i < tmp.length; i++) {
+                String[] champs = tmp[i].split(" ");
+                model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3]});
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static boolean checkReservation(String dateString) {
+        // Format de la date attendu (yyyy-MM-dd)
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        
+        try {
+            Date currentDate = new Date(); // Date actuelle
+            
+            // Convertir la chaîne de date en objet Date
+            Date reservationDate = dateFormat.parse(dateString);
+            
+            // Comparer avec la date actuelle
+            if (reservationDate.before(currentDate)) {
+                return false; // La date est dépassée
+            } else {
+                return true; // La date est future ou aujourd'hui
+            }
+        } catch (ParseException e) {
+            // Gérer une exception si la conversion de la chaîne en date échoue
+            e.printStackTrace();
+            return false; // En cas d'erreur, considérer la réservation comme dépassée
+        }
+    }
+
+    public boolean deleteReservation(String reservation) {
+        RequeteROMP req = null;
+
+        try {
+            req = new RequeteROMP(RequeteROMP.CROOM,reservation);
+            ois = null;
+            oos = null;
+            cliSock = null;
+            try {
+                cliSock = new Socket(config.getAdresse(), config.getPort());
+                System.out.println(cliSock.getInetAddress().toString());
+            } catch (IOException ex) {
+                Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            // Envoie de la requête
+            RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
+
+            // Lecture de la réponse
+            ReponseROMP rep;
+            rep = (ReponseROMP) RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
+            if(rep.getCode() == ReponseROMP.OK)
+            {
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+
+    }
 }

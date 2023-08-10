@@ -5,17 +5,16 @@
  */
 package Client_Reservation;
 
-import ClientsActivite.*;
-import ClientsActivite.ListeActivities;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
-import Utilities.Utils;
+import Requete.Reponse;
+import Utilities.Configuration;
+import Utilities.RequeteUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,14 +29,19 @@ public class LoginReservation extends javax.swing.JFrame {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private Socket cliSock;
-     File currentDirectory = new File(System.getProperty("user.dir"));
-    
+    File currentDirectory = new File(System.getProperty("user.dir"));
+    public Configuration config;
     public String path = currentDirectory+"\\src\\Config\\Config.config";
     /**
      * Creates new form LoginActivite
      */
     public LoginReservation() {
-        initComponents();
+        try {
+            initComponents();
+            config = new Configuration(path, "PORT_RESERVATIONS");
+        } catch (IOException ex) {
+            Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -134,96 +138,47 @@ public class LoginReservation extends javax.swing.JFrame {
             if(Jmdp.getText() != null && !Jmdp.getText().equals("") ){
                 
                 String chargeUtile = Jnom.getText()+";"+Jmdp.getText();
-                RequeteROMP req = null;
+                RequeteROMP req;
                 try {
                     req = new RequeteROMP(RequeteROMP.LOGIN, chargeUtile);
-                    
                     // Connexion au serveur
                     ois=null; oos=null; cliSock = null;
-                    String adresse = Utils.getItemConfig(path, "adresse");
-                    int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_RESERVATIONS"));
                     try
                     {
-                        cliSock = new Socket(adresse, port);
+                        cliSock = new Socket(config.getAdresse(), config.getPort());
                         System.out.println(cliSock.getInetAddress().toString());
                     }                       
                     catch (IOException ex) {
                         Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    // Envoie de la requête
-                    System.out.println("envoie requete !");
-                    try
-                    {
-                        oos = new ObjectOutputStream(cliSock.getOutputStream());
-                        oos.writeObject(req); oos.flush();
-                    }
-                    catch (IOException e)
-                    { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
+                    RequeteUtils.SendRequest(req, "LOGIN", oos, cliSock);
                     // Lecture de la réponse
-                    ReponseROMP rep = null;
-                    System.out.println("en attente d'une réponse !");
-                    try
-                    {
-                        ois = new ObjectInputStream(cliSock.getInputStream());
-                        rep = (ReponseROMP)ois.readObject();
-                        System.out.println(" *** Reponse reçue : " + rep.getChargeUtile());
+                    Reponse rep;
+                    rep = RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
+                    if(rep.getCode()== ReponseROMP.LOGIN_OK){
+                        System.out.println("Vous vous etes connecté !");
                         
-                        if(rep.getCode()== ReponseROMP.LOGIN_OK){
-                            System.out.println("Vous vous etes connecté !");
-                           
-                            MenuReservation m = new MenuReservation();
-                            m.setVisible(true);
-                            
-                            this.dispose();
-                        }else{
-                            JOptionPane.showMessageDialog(null, "mot de passe eronné ou identifiant oublié !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                            
-
-                        }
-                    }
-                    catch (ClassNotFoundException e)
-                    { System.out.println("--- erreur sur la classe = " + e.getMessage()); }
-                    catch (IOException e)
-                    { System.out.println("--- erreur IO = " + e.getMessage()); }
-                    
-                    
-                } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (SQLException ex) {
-                    Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (IOException ex) {
+                        MenuReservation m = new MenuReservation(config);
+                        m.setVisible(true);
+                        
+                        this.dispose();
+                    }else{
+                        JOptionPane.showMessageDialog(null, "mot de passe eronné ou identifiant oublié !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                    } 
+                } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
-                
+
             }else
             {
                 JOptionPane.showMessageDialog(null, "Veuillez saisir le mot de passe !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-                
             }
         }else
         {
             JOptionPane.showMessageDialog(null, "Veuillez saisir le nom d'utilisateur !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
-            
         }
     }//GEN-LAST:event_jButton1ActionPerformed
     
-    public void Connexion() throws IOException{
-        ois=null; oos=null; cliSock = null;
-        String adresse = "127.0.0.1";
-        int port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
-        try
-        {
-            cliSock = new Socket(adresse, port);
-            System.out.println(cliSock.getInetAddress().toString());
-        }                       
-        catch (IOException ex) {
-            Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        oos = new ObjectOutputStream(cliSock.getOutputStream());
-        
-        ois = new ObjectInputStream(cliSock.getInputStream());
-    }
     /**
      * @param args the command line arguments
      */
