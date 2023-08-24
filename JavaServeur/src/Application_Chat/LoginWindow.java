@@ -5,13 +5,29 @@
  */
 package Application_Chat;
 
-import Application_Chat.ChatWindow;
+import java.net.UnknownHostException;
+import javax.swing.DefaultListModel;
+import static Application_Chat.LoginWindow.model;
+import static Application_Chat.LoginWindow.thr;
+import ProtocoleHOLICOP.RequeteHOLICOP;
+import ProtocoleSPAYMAP.RequeteSPAYMAP;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
-import javax.swing.DefaultListModel;
+import java.net.Socket;
+import Utilities.Configuration;
+import Utilities.CryptoUtils;
+import Utilities.Utils;
+import java.io.File;
+import java.io.ObjectInputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Base64;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -23,15 +39,22 @@ public class LoginWindow extends javax.swing.JFrame {
      * Creates new form LoginWindow
      */
     public static DefaultListModel model = new DefaultListModel();
-    
-    private String nomCli;
+
+    private String pseudo;
+    private String password;
+
     private InetAddress adresseGroupe;
     MulticastSocket socketGroupe;
     public static ThreadReception thr;
-    int port = 60060;
-    
-    public LoginWindow() {
+
+    File currentDirectory = new File(System.getProperty("user.dir"));
+    public String path = currentDirectory + "\\src\\Config\\Config.config";
+    Configuration config;
+
+    public LoginWindow() throws IOException {
         initComponents();
+        config = new Configuration(path, "PORT_GROUP");
+
     }
 
     /**
@@ -47,13 +70,18 @@ public class LoginWindow extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         Field_Nom = new javax.swing.JTextField();
         Bouton_Valider = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        Field_Pass = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Footlight MT Light", 3, 18)); // NOI18N
-        jLabel1.setText("Bienvenue sur le chat Java");
+        jLabel1.setFont(new java.awt.Font("Eras Medium ITC", 0, 15)); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Authentification");
 
-        jLabel2.setText("Entrez votre nom : ");
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText("Pseudo");
+        jLabel2.setAlignmentY(0.0F);
 
         Bouton_Valider.setText("Valider");
         Bouton_Valider.addActionListener(new java.awt.event.ActionListener() {
@@ -62,62 +90,127 @@ public class LoginWindow extends javax.swing.JFrame {
             }
         });
 
+        jLabel3.setText("Password");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel2)
+                .addGap(178, 178, 178))
             .addGroup(layout.createSequentialGroup()
+                .addGap(128, 128, 128)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(39, 39, 39)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 237, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(60, 60, 60)
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(Field_Nom, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(111, 111, 111)
-                        .addComponent(Bouton_Valider, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(78, Short.MAX_VALUE))
+                    .addComponent(Field_Nom, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Field_Pass, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(93, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(Bouton_Valider)
+                        .addGap(166, 166, 166))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(174, 174, 174))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 237, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(72, 72, 72))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
+                .addGap(19, 19, 19)
                 .addComponent(jLabel1)
-                .addGap(74, 74, 74)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Field_Nom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 61, Short.MAX_VALUE)
+                .addGap(27, 27, 27)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(Field_Nom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(Field_Pass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(24, 24, 24)
                 .addComponent(Bouton_Valider)
-                .addGap(46, 46, 46))
+                .addContainerGap(60, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
     private void Bouton_ValiderActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Bouton_ValiderActionPerformed
-        try
-        {
-            adresseGroupe = InetAddress.getByName("234.5.5.9");
-            socketGroupe = new MulticastSocket(60060);
-            socketGroupe.joinGroup(adresseGroupe);
-            thr = new ThreadReception (nomCli, socketGroupe, model);
-            thr.start();
-            nomCli = Field_Nom.getText();
-            String msgDeb = nomCli + " vient de rejoindre le groupe.";
-            DatagramPacket dtg = new DatagramPacket(msgDeb.getBytes(), msgDeb.length(),
-            adresseGroupe, port);
-            socketGroupe.send(dtg);
-            
-            ChatWindow cw = new ChatWindow(nomCli, socketGroupe, adresseGroupe);
-            cw.setVisible(true);
-            this.dispose();
+
+        try {
+
+            pseudo = Field_Nom.getText();
+            password = Field_Pass.getText();
+
+            long temps = (new Date()).getTime();
+            double alea = Math.random();
+
+            byte[] messageDigest = CryptoUtils.getInstance().createMessageDigest(pseudo, password, temps, alea);
+            RequeteHOLICOP authRequete = new RequeteHOLICOP(pseudo + ":" + Base64.getEncoder().encodeToString(messageDigest) + ":" + temps + ":" + alea);
+            try {
+                // requete auth
+                Socket cliSock = new Socket(config.getAdresse(), config.getPort());
+                ObjectOutputStream oos = new ObjectOutputStream(cliSock.getOutputStream());
+                oos.writeObject(authRequete);
+                oos.flush();
+
+                // reponse auth
+                ObjectInputStream ois = new ObjectInputStream(cliSock.getInputStream());
+                String response = (String) ois.readObject();
+                String[] responseParts = response.split("#");
+
+                if (responseParts[0].equals("ok")) {
+                    int portGroup = Integer.parseInt(responseParts[1]);
+                    String multicastAddress = responseParts[2];
+                    System.out.println("Authentification réussie");
+                    
+
+                    //multicast
+                    adresseGroupe = InetAddress.getByName(multicastAddress);
+                    socketGroupe = new MulticastSocket(portGroup);
+                    socketGroupe.joinGroup(adresseGroupe);
+                    //thread ecoute
+                    thr = new ThreadReception(socketGroupe, model);
+                    thr.start();
+                    
+                    String msgDeb = pseudo + " vient de rejoindre le groupe.";
+                    DatagramPacket dtg = new DatagramPacket(msgDeb.getBytes(), msgDeb.length(),adresseGroupe, portGroup);
+                    socketGroupe.send(dtg);
+                } else if (responseParts[0].equals("ko")) {
+                    System.out.println("Authentification échouée.");
+                }
+                ois.close();
+                oos.close();
+                cliSock.close();
+
+                //message
+                
+                            
+                
+                //fen chat
+                ChatWindow cw = new ChatWindow(pseudo, socketGroupe, adresseGroupe);
+                cw.setVisible(true);
+                this.dispose();
+                
+            } catch (UnknownHostException e) {
+                System.out.println("Erreur : " + e.getMessage());
+            } catch (IOException e) {
+                System.out.println("Erreur : " + e.getMessage());
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(LoginWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(LoginWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchProviderException ex) {
+            Logger.getLogger(LoginWindow.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(LoginWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch (UnknownHostException e){ System.out.println("Erreur : " + e.getMessage());}
-        catch (IOException e){ System.out.println("Erreur : " + e.getMessage()); }
     }//GEN-LAST:event_Bouton_ValiderActionPerformed
 
     /**
@@ -150,7 +243,11 @@ public class LoginWindow extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new LoginWindow().setVisible(true);
+                try {
+                    new LoginWindow().setVisible(true);
+                } catch (IOException ex) {
+                    Logger.getLogger(LoginWindow.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -158,7 +255,9 @@ public class LoginWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Bouton_Valider;
     private javax.swing.JTextField Field_Nom;
+    private javax.swing.JTextField Field_Pass;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     // End of variables declaration//GEN-END:variables
 }
