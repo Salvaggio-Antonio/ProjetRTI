@@ -4,7 +4,7 @@
  */
 package Servlets;
 
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -46,23 +46,20 @@ public class PaiementServlet extends HttpServlet {
         String mdp = (String) request.getSession().getAttribute("mdp");
         String carte = (String)request.getParameter("credit");
         try {
-            BDHolidays bd = new BDHolidays("root","root","bd_holidays");
             
-            ResultSet u = bd.checkUserByCredit(user, mdp, carte);
-            
-           
+            ResultSet u = BDHolidays.getInstance().checkUserByCredit(user, mdp, carte);
+
             
             if(u != null){
-                    if(u.next()){
-                        if(bd.PaiementReservation(Integer.parseInt(request.getParameter("reservation")), Integer.parseInt(u.getString("idvoyageurs")))){
-                            msg="Le Paiement a été effectué avec succès !";
-                        }else{
-                            msg ="Vous vous etes trompé de numéro de reservation !";
-                        }
-                        
+                if(u.next()){
+                    if(BDHolidays.getInstance().PaiementReservation(Integer.parseInt(request.getParameter("reservation")), Integer.parseInt(u.getString("idvoyageurs")))){
+                        msg="Le Paiement a été effectué avec succès !";
                     }else{
-                        msg ="Vous vous êtes trompé de numéro de carte !";
+                        msg ="Vous vous etes trompé de numéro de reservation !";
                     }
+                }else{
+                    msg ="Vous vous êtes trompé de numéro de carte !";
+                }
             }else{
                 msg ="Vous vous êtes trompé de numéro de carte !";
             }

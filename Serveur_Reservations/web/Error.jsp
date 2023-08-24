@@ -13,12 +13,6 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <% String user = (String)request.getSession().getAttribute("user");
-    
-        if(user== null){
-            
-            response.sendRedirect(request.getContextPath() + "/Login.jsp");
-        } %>
         <%
             String messageError = (String)request.getSession().getAttribute("ErrMessage");
         %>

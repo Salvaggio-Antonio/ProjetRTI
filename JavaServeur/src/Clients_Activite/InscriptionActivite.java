@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ClientsActivite;
+package Clients_Activite;
 
 import ProtocoleFUCAMP.ReponseFUCAMP;
 import ProtocoleFUCAMP.RequeteFUCAMP;
@@ -267,16 +267,21 @@ public class InscriptionActivite extends javax.swing.JDialog {
                     } catch (IOException ex) {
                         Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    oos = new ObjectOutputStream(cliSock.getOutputStream());
+                    
                     // Envoie de la requête
                     RequeteUtils.SendRequest(req, "RESERVATIONACTIVITE", oos, cliSock);
 
                     // Lecture de la réponse
+                    ois = new ObjectInputStream(cliSock.getInputStream());
                     rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
                     
                     JOptionPane.showMessageDialog(null,rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
 
                 } catch (ClassNotFoundException | SQLException ex) {
                     Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Veuillez saisir tout les champs !!", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
@@ -306,8 +311,11 @@ public class InscriptionActivite extends javax.swing.JDialog {
                 } catch (IOException ex) {
                     Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
+                oos = new ObjectOutputStream(cliSock.getOutputStream());
+                
                 RequeteUtils.SendRequest(req, "DELETERESERVATION", oos, cliSock);
+                
+                ois = new ObjectInputStream(cliSock.getInputStream());
                 ReponseFUCAMP r;
                 r = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
                 
@@ -315,6 +323,8 @@ public class InscriptionActivite extends javax.swing.JDialog {
 
             } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(InscriptionActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
             try {
                 initParticipants();
@@ -368,11 +378,14 @@ public class InscriptionActivite extends javax.swing.JDialog {
         } catch (IOException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        oos = new ObjectOutputStream(cliSock.getOutputStream());
+        
+        
         RequeteUtils.SendRequest(req, "GETALLPARTICIPANTSBYACTIVITE", oos, cliSock);
         // Lecture de la réponse
+        ois = new ObjectInputStream(cliSock.getInputStream());
         ReponseFUCAMP rep;
-
+        
         rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
         if (rep.getCode() == ReponseFUCAMP.OK) {
 

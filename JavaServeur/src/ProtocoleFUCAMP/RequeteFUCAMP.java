@@ -5,7 +5,6 @@
  */
 package ProtocoleFUCAMP;
 
-import ProtocoleFUCAMP.ReponseFUCAMP;
 import Requete.Requete;
 import Serveurs.ConsoleServeur;
 import Utilities.Utils;
@@ -106,6 +105,8 @@ public class RequeteFUCAMP implements Requete, Serializable {
                             getAllParticipantsByActivite(s, cs);
                         } catch (SQLException ex) {
                             Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (ClassNotFoundException ex) {
+                            Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     }
                 };
@@ -169,10 +170,8 @@ public class RequeteFUCAMP implements Requete, Serializable {
 
     public void getAllActivities(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
-
         System.out.println("JE SUIS DANS GETALLACTIVITIES");
-        ResultSet s = bd.getAllActivities();
+        ResultSet s = BDHolidays.getInstance().getAllActivities();
 
         chargeUtile = "";
         while (s.next()) {
@@ -196,19 +195,10 @@ public class RequeteFUCAMP implements Requete, Serializable {
 
     }
 
-    public void getAllParticipantsByActivite(Socket sock, ConsoleServeur cs) throws SQLException {
-
-        BDHolidays bd = null;
-        try {
-            bd = new BDHolidays("root", "root", "bd_holidays");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(RequeteFUCAMP.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void getAllParticipantsByActivite(Socket sock, ConsoleServeur cs) throws SQLException, ClassNotFoundException {
 
         System.out.println("JE SUIS DANS getAllParticipantsByActivite");
-        ResultSet s = bd.getAllParticipantsByActivite(Integer.parseInt(getChargeUtile()));
+        ResultSet s = BDHolidays.getInstance().getAllParticipantsByActivite(Integer.parseInt(getChargeUtile()));
 
         chargeUtile = "";
         while (s.next()) {
@@ -238,13 +228,12 @@ public class RequeteFUCAMP implements Requete, Serializable {
 
     public void suppReservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
         System.out.println("JE SUIS DANS DELETERESERVATION");
         ReponseFUCAMP rep;
 
         String[] recu = getChargeUtile().split(":");
 
-        Boolean d = bd.DeleteReservationActivite(Integer.parseInt(recu[0]), Integer.parseInt(recu[1]), recu[2]);
+        Boolean d = BDHolidays.getInstance().DeleteReservationActivite(Integer.parseInt(recu[0]), Integer.parseInt(recu[1]), recu[2]);
 
         if (d) {
 
@@ -267,13 +256,12 @@ public class RequeteFUCAMP implements Requete, Serializable {
 
     public void reservationActivite(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
         System.out.println("JE SUIS DANS RESERVATIONACTIVITE");
         ReponseFUCAMP rep;
 
         String[] recu = getChargeUtile().split(":");
 
-        ResultSet s = bd.getVoyageursByEmailandName(recu[1], recu[0]);
+        ResultSet s = BDHolidays.getInstance().getVoyageursByEmailandName(recu[1], recu[0]);
 
         if (s.next()) {
             if (bd.checkReservationActivite(Integer.parseInt(recu[4]), Integer.parseInt(s.getString("idvoyageurs")), recu[2])) {

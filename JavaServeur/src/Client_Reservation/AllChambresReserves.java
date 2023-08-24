@@ -5,7 +5,7 @@
  */
 package Client_Reservation;
 
-import ClientsActivite.LoginActivite;
+import Clients_Activite.LoginActivite;
 import ProtocoleROMP.RequeteROMP;
 import Requete.Reponse;
 import Utilities.Configuration;
@@ -57,11 +57,14 @@ public class AllChambresReserves extends javax.swing.JDialog {
             catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
+            oos = new ObjectOutputStream(cliSock.getOutputStream());
+            
             
             RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
             
             // Lecture de la réponse
             Reponse rep;
+            ois = new ObjectInputStream(cliSock.getInputStream());
             rep = RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
             
             String[] recu = rep.getChargeUtile().split(":");
@@ -73,6 +76,8 @@ public class AllChambresReserves extends javax.swing.JDialog {
 
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(AllChambresReserves.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }

@@ -5,6 +5,7 @@
  */
 package Serveurs;
 
+import Holidays.BDHolidays;
 import Requete.Requete;
 import Utilities.Utils;
 import java.io.File;
@@ -23,16 +24,18 @@ public class ThreadServeur extends Thread {
     private int port;
     private SourceTaches tachesAExecuter;
     private ConsoleServeur guiApplication;
+    private int maxthread;
     private ServerSocket SSocket = null;
-     File currentDirectory = new File(System.getProperty("user.dir"));
+    File currentDirectory = new File(System.getProperty("user.dir"));
     
     public String path = currentDirectory+"\\src\\Config\\Config.config";
     
-    public ThreadServeur(int p, SourceTaches st, ConsoleServeur fs)
+    public ThreadServeur(int p, SourceTaches st, ConsoleServeur fs, int m)
     {
         port = p; 
         tachesAExecuter = st; 
         guiApplication = fs;
+        maxthread = m;
     }
     public void run()
     {
@@ -44,16 +47,12 @@ public class ThreadServeur extends Thread {
         {
             System.err.println("Erreur de port d'écoute ! ? [" + e + "]"); System.exit(1);
         }
-        try {
-            // Démarrage du pool de threads
-            for (int i=0; i<Integer.parseInt(Utils.getItemConfig(path, "maxthread")); i++) // 3 devrait être constante ou une propriété du fichier de config
-            {
-                ThreadClient thr = new ThreadClient (tachesAExecuter, "Thread du pool n°" +
-                        String.valueOf(i));
-                thr.start();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(ThreadServeur.class.getName()).log(Level.SEVERE, null, ex);
+        // Démarrage du pool de threads
+        for (int i=0; i<maxthread ; i++) // 3 devrait être constante ou une propriété du fichier de config
+        {
+            ThreadClient thr = new ThreadClient (tachesAExecuter, "Thread du pool n°" +
+                    String.valueOf(i));
+            thr.start();
         }
 
         // Mise en attente du serveur

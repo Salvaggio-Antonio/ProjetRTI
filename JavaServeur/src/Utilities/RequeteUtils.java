@@ -4,9 +4,11 @@
  */
 package Utilities;
 
-import ClientsActivite.LoginActivite;
+import Clients_Activite.LoginActivite;
 import ProtocoleFUCAMP.ReponseFUCAMP;
+import ProtocoleHOLICOP.ReponseHOLICOP;
 import ProtocoleROMP.ReponseROMP;
+import ProtocoleSPAYMAP.ReponseSPAYMAP;
 import Requete.Reponse;
 import Requete.Requete;
 import java.io.IOException;
@@ -28,8 +30,8 @@ public class RequeteUtils {
         System.out.println("envoie requete "+typeRequete);
         try
         {
-            oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(r); oos.flush();
+            oos.reset();
         }
         catch (IOException e)
         { System.err.println("Erreur réseau ? [" + e.getMessage() + "]"); }
@@ -39,18 +41,17 @@ public class RequeteUtils {
         Reponse r = null;
         System.out.println("en attente d'une réponse !");
         try
-        {
-            ois = new ObjectInputStream(socket.getInputStream());
-            if(protocole.equals("ROMP"))
+        {   
+            switch(protocole)
             {
-                r = (ReponseROMP)ois.readObject();
+                case "ROMP": r = (ReponseROMP)ois.readObject();
+                break;
+                case "FUCAMP": r = (ReponseFUCAMP)ois.readObject();
+                break;
+                case "SPAYMAP": r = (ReponseSPAYMAP)ois.readObject();
+                break;
+                case "HOLICOP": r = (ReponseHOLICOP)ois.readObject();
             }
-            else if(protocole.equals("FUCAMP")){
-                r = (ReponseFUCAMP)ois.readObject();
-            }
-            
-            System.out.println(" *** Reponse reçue : " + r.getChargeUtile());
-
             return r;
         }
         catch (ClassNotFoundException e)

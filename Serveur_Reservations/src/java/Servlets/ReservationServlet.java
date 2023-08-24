@@ -4,9 +4,8 @@
  */
 package Servlets;
 
-import database.facility.BDHolidays;
+import Holidays.BDHolidays;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +14,6 @@ import jakarta.servlet.http.HttpSession;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,37 +46,31 @@ public class ReservationServlet extends HttpServlet {
         String mdp = (String) request.getSession().getAttribute("mdp");
 
         try {
-            BDHolidays bd = new BDHolidays("root","root","bd_holidays");
             String newDateString = request.getParameter("dated");
-
             
-            ResultSet s =bd.getChambreLibre(request.getParameter("categorie"), request.getParameter("typeChambre"), newDateString, Integer.parseInt(request.getParameter("nombreNuit")));
-            ResultSet u = bd.getUserByEmail(user, mdp);
-            u.next();
-            Double prixnet =0.0;
+            ResultSet u = BDHolidays.getInstance().getUserByEmail(user, mdp);
             
-            if(s != null)
+            if(u.next())
             {
-                if(s.next()){
-                    prixnet =Double.parseDouble(s.getString("prix_htva")) *1.21*Integer.parseInt(request.getParameter("nombreNuit"));
-                    if(bd.insertReservationChambre(Integer.parseInt(s.getString("idchambres")), Integer.parseInt(u.getString("idvoyageurs")), newDateString, Integer.parseInt(request.getParameter("nombreNuit")),prixnet))
+                ResultSet s = BDHolidays.getInstance().getChambreLibre(request.getParameter("categorie"), request.getParameter("typeChambre"), newDateString, Integer.parseInt(request.getParameter("nombreNuit")));
+                if(s != null)
+                {
+                    Double prixnet =0.0;
+                    prixnet = Double.parseDouble(s.getString("prix_htva")) *1.21*Integer.parseInt(request.getParameter("nombreNuit"));
+                    boolean b = BDHolidays.getInstance().insertReservationChambre(Integer.parseInt(s.getString("idchambres")), Integer.parseInt(u.getString("idvoyageurs")), newDateString, Integer.parseInt(request.getParameter("nombreNuit")),prixnet);
+                    if(b)
                     {
-                        Trouve = true;
-                    }  
-                    else{
-                        msg = "Aucune Chambre disponible 3!";
+                        msg = "La chambre n°"+s.getString("idchambres")+ " a été reservé pour un total de : "+prixnet;
                     }
-                }else{
-                     msg = "Aucune Chambre disponible 2!";
+                    else
+                    {
+                        msg ="La réservation n'a pas pu se faire";
+                    }
                 }
-            }else{
-                 msg = "Aucune Chambre disponible 1!";
-            }
-            
-            if(Trouve){
-               msg = "La chambre n°"+s.getString("idchambres")+ " a été reservé pour un total de : "+prixnet;
-            }else{
-               
+                else
+                {
+                    msg ="Aucune Chambre disponible";
+                }
             }
             
             session.setAttribute("repres",msg );

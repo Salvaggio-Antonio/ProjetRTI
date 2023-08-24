@@ -24,14 +24,14 @@ import java.util.logging.Logger;
  * @author Anto
  */
 
-public class FenAppServeurActivite extends javax.swing.JFrame implements ConsoleServeur {
+public class FenAppServeur_Activite extends javax.swing.JFrame implements ConsoleServeur {
 
     private int port;
     
      File currentDirectory = new File(System.getProperty("user.dir"));
     
     public String path = currentDirectory+"\\src\\Config\\Config.config";
-    public FenAppServeurActivite() throws IOException {
+    public FenAppServeur_Activite() throws IOException {
         initComponents();
         
         port = Integer.parseInt(Utils.getItemConfig(path, "PORT_ACTIVITES"));
@@ -105,9 +105,14 @@ public class FenAppServeurActivite extends javax.swing.JFrame implements Console
 
     private void BStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BStartActionPerformed
       
-        TraceEvenements("serveur#acquisition du port#main");
-        ThreadServeur ts = new ThreadServeur(port,  new ListeTaches(), this);
-        ts.start();
+        try {
+            TraceEvenements("serveur#acquisition du port#main");
+            int maxthread = Integer.parseInt(Utils.getItemConfig(path, "maxthreadActivite"));
+            ThreadServeur ts = new ThreadServeur(port,  new ListeTaches(), this,maxthread);
+            ts.start();
+        } catch (IOException ex) {
+            Logger.getLogger(FenAppServeur_Activite.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_BStartActionPerformed
 
     /**
@@ -127,14 +132,16 @@ public class FenAppServeurActivite extends javax.swing.JFrame implements Console
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FenAppServeurActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FenAppServeur_Activite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FenAppServeurActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FenAppServeur_Activite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FenAppServeurActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FenAppServeur_Activite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(FenAppServeurActivite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FenAppServeur_Activite.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
 
@@ -142,9 +149,9 @@ public class FenAppServeurActivite extends javax.swing.JFrame implements Console
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    new FenAppServeurActivite().setVisible(true);
+                    new FenAppServeur_Activite().setVisible(true);
                 } catch (IOException ex) {
-                    Logger.getLogger(FenAppServeurActivite.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(FenAppServeur_Activite.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });

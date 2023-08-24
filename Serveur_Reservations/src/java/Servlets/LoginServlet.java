@@ -5,7 +5,8 @@
  */
 package Servlets;
 
-import database.facility.BDHolidays;
+
+import Holidays.BDHolidays;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -45,20 +46,12 @@ public class LoginServlet extends HttpServlet {
         String msgError="";
         Boolean err=false;
         HttpSession session = request.getSession(true);
-        session.setAttribute("mdp", pass);
-        session.setAttribute("user", login);
+        
         
         BDHolidays bd;
         try {
-            bd = new BDHolidays("root","root","bd_holidays");
-            
-            ResultSet s = bd.getVoyageursByEmail(login);
-
-            
-        
+            ResultSet s = BDHolidays.getInstance().getVoyageursByEmail(login);
             response.setContentType("text/html;charset=UTF-8");
-            
-                /* TODO output your page here. You may use following sample code. */
 
             if(request.getParameter("create")== null)
             {
@@ -68,6 +61,11 @@ public class LoginServlet extends HttpServlet {
                         {
                             err=true;
                             msgError="Mot de passe érroné"; 
+                        }
+                        else
+                        {
+                            session.setAttribute("mdp", pass);
+                            session.setAttribute("user", login);
                         }
                     } catch (SQLException ex) {
                         Logger.getLogger(LoginServlet.class.getName()).log(Level.SEVERE, null, ex);
@@ -80,7 +78,7 @@ public class LoginServlet extends HttpServlet {
                 }
 
             }else{
-                if(!bd.insertVoyageur(login, pass))
+                if(!BDHolidays.getInstance().insertVoyageur(login, pass))
                 {
                     err=true;
                     msgError = "Nom d'utilisateur déja existant !!";

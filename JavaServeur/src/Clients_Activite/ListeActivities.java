@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ClientsActivite;
+package Clients_Activite;
 
 import ProtocoleFUCAMP.RequeteFUCAMP;
 import ProtocoleFUCAMP.ReponseFUCAMP;
@@ -154,10 +154,13 @@ public class ListeActivities extends javax.swing.JFrame {
             catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
+            oos = new ObjectOutputStream(cliSock.getOutputStream());
+            
             // Envoie de la requête
            RequeteUtils.SendRequest(req, "GETALLACTIVITIES", oos, cliSock);
             
             // Lecture de la réponse
+            ois = new ObjectInputStream(cliSock.getInputStream());
             ReponseFUCAMP rep;
             rep = (ReponseFUCAMP) RequeteUtils.ReceiveRequest(cliSock, ois, "FUCAMP");
 

@@ -8,24 +8,21 @@ public class ConnectionBDMySQL{
     protected String db;
     protected Connection connection;
 
-    public ConnectionBDMySQL() throws ClassNotFoundException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-    }
-
-    public ConnectionBDMySQL(String user, String password, String db) throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        this.user = user;
-        this.password = password;
-        this.db = db;
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+db, user, password);
+    protected ConnectionBDMySQL() throws ClassNotFoundException, SQLException
+    {
+        setConnection("root", "root", "bd_holidays");
     }
 
     public Connection getConnection() {
         return connection;
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    public void setConnection(String user, String password, String db) throws ClassNotFoundException, SQLException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        this.user = user;
+        this.password = password;
+        this.db = db;
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/"+db, user, password);
     }
 
     public String getUser() {

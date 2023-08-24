@@ -5,7 +5,7 @@
  */
 package Client_Reservation;
 
-import ClientsActivite.LoginActivite;
+import Clients_Activite.LoginActivite;
 import ProtocoleROMP.ReponseROMP;
 import ProtocoleROMP.RequeteROMP;
 import Utilities.Configuration;
@@ -215,14 +215,20 @@ public class PaiementReservation extends javax.swing.JDialog {
             catch (IOException ex) {
                 Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
             }
+            oos = new ObjectOutputStream(cliSock.getOutputStream());
+            
+            
             RequeteUtils.SendRequest(req, "PROOM", oos, cliSock);
             
+            ois = new ObjectInputStream(cliSock.getInputStream());
             rep = (ReponseROMP) RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
             
             JOptionPane.showMessageDialog(null, rep.getChargeUtile(), "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
             
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LoginActivite.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PaiementReservation.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed

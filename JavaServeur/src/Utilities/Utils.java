@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.util.Locale;
 
 /**
  *
@@ -39,5 +41,16 @@ public class Utils {
         return item;
         
     }
+    
+    public static String getDayNameWithK(DayOfWeek dayOfWeek) {
+        String dayName = dayOfWeek.getDisplayName(
+                java.time.format.TextStyle.FULL_STANDALONE,
+                Locale.FRANCE
+        );
+        return "k" + dayName.toLowerCase();
+    }
+    
+    
+    
     
 }

@@ -8,16 +8,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BDHolidays extends ConnectionBDMySQL implements Serializable {
+    
+    private static BDHolidays instance;
+    
 
-    public BDHolidays() throws ClassNotFoundException {
-
+    private BDHolidays() throws ClassNotFoundException, SQLException {
         super();
     }
-
-    public BDHolidays(String user, String password, String db) throws ClassNotFoundException, SQLException {
-
-        super(user, password, db);
-    }
+   
 
     public synchronized ResultSet getUserByEmail(String Email, String mdp) {
         try {
@@ -79,6 +77,19 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             return null;
         }
     }
+    public synchronized ResultSet getAllChambreReservePasPaye() {
+    try {
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs " +
+                                                                         "INNER JOIN reservations ON (voyageurs.idvoyageurs = reservations.id_titulaire) " +
+                                                                         "WHERE reservations.id_chambre IS NOT NULL " +
+                                                                         "AND reservations.resteapayer > 0");
+        return preparedStatement.executeQuery();
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
 
     public synchronized ResultSet getAllVoyageurs() {
         try {
@@ -252,7 +263,7 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
     public synchronized ResultSet getReservationChambreByEMailNonPaye(String email) {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs inner join reservations on (voyageurs.idvoyageurs = reservations.id_titulaire)"
-                    + " WHERE mail = ? and paye = false and id_chambre is not null");
+                    + " WHERE mail = ? and resteapayer > 0 and id_chambre is not null");
             preparedStatement.setString(1, email);
 
             return preparedStatement.executeQuery();
@@ -264,7 +275,7 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
 
     public synchronized boolean insertReservationChambre(int idchambre, int id_titulaire, String date, int nombreNuit, double prix) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO reservations(id_titulaire, id_chambre, date_debut, date_fin, prix_net, NombreNuit, paye) VALUES (?, ?, ?,DATE_ADD(?, INTERVAL ? DAY), ?, ?, 0 );");
+            PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO reservations(id_titulaire, id_chambre, date_debut, date_fin, prix_net, NombreNuit, paye, resteapayer) VALUES (?, ?, ?,DATE_ADD(?, INTERVAL ? DAY), ?, ?, 0 ,?);");
             preparedStatement.setInt(1, id_titulaire);
             preparedStatement.setInt(2, idchambre);
             preparedStatement.setString(3, date);
@@ -272,6 +283,7 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             preparedStatement.setInt(5, nombreNuit);
             preparedStatement.setDouble(6, prix);
             preparedStatement.setInt(7, nombreNuit);
+            preparedStatement.setDouble(8, prix);
 
             preparedStatement.execute();
 
@@ -368,6 +380,22 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             return false;
         }
     }
+    
+    public synchronized boolean PayReservation(int reservation, double resteapayer) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement("update reservations set resteapayer = ?  where idreservations = ? ");
+            preparedStatement.setDouble(1, resteapayer);
+            preparedStatement.setInt(2, reservation);
+
+            int rowCount = preparedStatement.executeUpdate();
+            return rowCount > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+            return false;
+        }
+    }
 
     public synchronized boolean SuppressionReservation(int idchambre, int id_titulaire, String date) {
         try {
@@ -418,10 +446,22 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             return false;
         }
     }
+    
+    public synchronized ResultSet getAdmin(String login) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM admin where login = ?;");
+            preparedStatement.setString(1, login);
+
+            return preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public static String toString(ResultSet rs) {
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("[");
         try {
             ResultSetMetaData metaData = rs.getMetaData();
@@ -442,4 +482,18 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
 
         return buf.toString();
     }
+    
+    
+
+    /**
+     * @return the instance
+     */
+    public static BDHolidays getInstance() throws ClassNotFoundException, SQLException {
+        if(instance == null)
+        {
+            instance =  new BDHolidays();
+        }
+        return instance;
+    }
+
 }

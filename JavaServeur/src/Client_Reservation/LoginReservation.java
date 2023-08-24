@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -151,9 +152,14 @@ public class LoginReservation extends javax.swing.JFrame {
                     catch (IOException ex) {
                         Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    oos = new ObjectOutputStream(cliSock.getOutputStream());
+                    
                     RequeteUtils.SendRequest(req, "LOGIN", oos, cliSock);
                     // Lecture de la réponse
+                    
+                    ois = new ObjectInputStream(cliSock.getInputStream());
                     Reponse rep;
+                    
                     rep = RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
                     if(rep.getCode()== ReponseROMP.LOGIN_OK){
                         System.out.println("Vous vous etes connecté !");
@@ -165,7 +171,7 @@ public class LoginReservation extends javax.swing.JFrame {
                     }else{
                         JOptionPane.showMessageDialog(null, "mot de passe eronné ou identifiant oublié !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
                     } 
-                } catch (ClassNotFoundException | SQLException ex) {
+                } catch (ClassNotFoundException | SQLException | IOException ex) {
                     Logger.getLogger(LoginReservation.class.getName()).log(Level.SEVERE, null, ex);
                 }
 

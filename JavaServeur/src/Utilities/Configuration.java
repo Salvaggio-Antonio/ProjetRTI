@@ -13,6 +13,7 @@ import java.io.IOException;
 public class Configuration {
     private String _adresse;
     private int _port;
+    
 
     public Configuration(String path, String port) throws IOException
     {

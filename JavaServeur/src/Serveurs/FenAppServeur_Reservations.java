@@ -106,9 +106,14 @@ public class FenAppServeur_Reservations extends javax.swing.JFrame implements Co
 
     private void BStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BStartActionPerformed
       
-        TraceEvenements("serveur#acquisition du port#main");
-        ThreadServeur ts = new ThreadServeur(port,  new ListeTaches(), this);
-        ts.start();
+        try {
+            TraceEvenements("serveur#acquisition du port#main");
+            int maxthread = Integer.parseInt(Utils.getItemConfig(path, "maxthreadPaiement"));
+            ThreadServeur ts = new ThreadServeur(port,  new ListeTaches(), this, maxthread);
+            ts.start();
+        } catch (IOException ex) {
+            Logger.getLogger(FenAppServeur_Reservations.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_BStartActionPerformed
 
     /**

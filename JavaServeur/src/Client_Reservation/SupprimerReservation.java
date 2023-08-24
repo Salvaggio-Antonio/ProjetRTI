@@ -152,9 +152,12 @@ public class SupprimerReservation extends javax.swing.JDialog {
             } catch (IOException ex) {
                 Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
             }
+            oos = new ObjectOutputStream(cliSock.getOutputStream());
+
             // Envoie de la requête
             RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
-
+            
+            ois = new ObjectInputStream(cliSock.getInputStream());
             // Lecture de la réponse
             ReponseROMP rep;
             rep = (ReponseROMP) RequeteUtils.ReceiveRequest(cliSock, ois, "ROMP");
@@ -168,6 +171,8 @@ public class SupprimerReservation extends javax.swing.JDialog {
                 model.addRow(new Object[]{champs[0], champs[1], champs[2], champs[3]});
             }
         } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -209,6 +214,8 @@ public class SupprimerReservation extends javax.swing.JDialog {
             } catch (IOException ex) {
                 Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
             }
+            oos = new ObjectOutputStream(cliSock.getOutputStream());
+            ois = new ObjectInputStream(cliSock.getInputStream());
             // Envoie de la requête
             RequeteUtils.SendRequest(req, "LROOMS", oos, cliSock);
 
@@ -223,6 +230,8 @@ public class SupprimerReservation extends javax.swing.JDialog {
                 return false;
             }
         } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(SupprimerReservation.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;

@@ -4,7 +4,8 @@
  */
 package Servlets;
 
-import database.facility.BDHolidays;
+
+import Holidays.BDHolidays;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -45,11 +46,9 @@ public class InitCaddie extends HttpServlet {
         }
         HttpSession session = request.getSession(true);
         
-        BDHolidays bd = new BDHolidays("root","root","bd_holidays");
-        
         ArrayList<String> reservations = new ArrayList();
         try {
-            ResultSet s =bd.getReservationChambreByEMailNonPaye(user);
+            ResultSet s =BDHolidays.getInstance().getReservationChambreByEMailNonPaye(user);
             
             while(s != null && s.next()){
                 reservations.add(s.getString("idreservations")+":"+ s.getString("id_chambre")+":"+s.getString("date_debut")+":"+s.getString("date_fin")+":"+s.getString("NombreNuit")+":"+s.getString("prix_net"));

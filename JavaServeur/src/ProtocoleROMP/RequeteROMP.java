@@ -25,9 +25,7 @@ import java.util.logging.Logger;
  */
 public class RequeteROMP implements Requete, Serializable {
 
-    public BDHolidays bd;
     private int type;
-    private Socket socketClient;
     public String chargeUtile;
     File currentDirectory = new File(System.getProperty("user.dir"));
 
@@ -166,19 +164,18 @@ public class RequeteROMP implements Requete, Serializable {
 
     public void TraitementBROOM(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
         System.out.println("JE SUIS DANS TraitementBROOM");
         ReponseROMP rep;
 
         String[] recu = getChargeUtile().split(":");
 
-        ResultSet rs = bd.getVoyageursByEmailandName(recu[1], recu[0]);
+        ResultSet rs = BDHolidays.getInstance().getVoyageursByEmailandName(recu[1], recu[0]);
 
         if (rs.next()) {
-            ResultSet r = bd.getChambreLibre(recu[2], recu[3], recu[4], Integer.parseInt(recu[5]));
+            ResultSet r = BDHolidays.getInstance().getChambreLibre(recu[2], recu[3], recu[4], Integer.parseInt(recu[5]));
 
             if (r != null) {
-                Boolean b = bd.insertReservationChambre(Integer.parseInt(r.getString("idchambres")), Integer.parseInt(rs.getString("idvoyageurs")), recu[4], Integer.parseInt(recu[5]), Double.parseDouble(r.getString("prix_htva")) * 1.21 * Integer.parseInt(recu[5]));
+                Boolean b = BDHolidays.getInstance().insertReservationChambre(Integer.parseInt(r.getString("idchambres")), Integer.parseInt(rs.getString("idvoyageurs")), recu[4], Integer.parseInt(recu[5]), Double.parseDouble(r.getString("prix_htva")) * 1.21 * Integer.parseInt(recu[5]));
                 if (b) {
                     rep = new ReponseROMP(ReponseROMP.OK, "la chambre n°" + r.getString("idchambres") + " a été reservé pour le prix de : " + Double.parseDouble(r.getString("prix_htva")) * 1.21 * Integer.parseInt(recu[5]));
                 } else {
@@ -203,19 +200,19 @@ public class RequeteROMP implements Requete, Serializable {
     }
 
     public void TraitementPROOM(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
+        
         System.out.println("JE SUIS DANS TraitementPROOM");
         ReponseROMP rep;
 
         String[] recu = getChargeUtile().split(":");
 
-        ResultSet rs = bd.getVoyageursByEmailandName(recu[1], recu[0]);
+        ResultSet rs = BDHolidays.getInstance().getVoyageursByEmailandName(recu[1], recu[0]);
 
         if (rs.next()) {
 
             if (rs.getString("creditCard").equals(recu[2])) {
 
-                if (bd.PaiementReservation(Integer.parseInt(recu[3]), Integer.parseInt(rs.getString("idvoyageurs")), recu[4])) {
+                if (BDHolidays.getInstance().PaiementReservation(Integer.parseInt(recu[3]), Integer.parseInt(rs.getString("idvoyageurs")), recu[4])) {
 
                     rep = new ReponseROMP(ReponseROMP.OK, "Le paiement a été un succès !!");
                 } else {
@@ -244,11 +241,10 @@ public class RequeteROMP implements Requete, Serializable {
 
     public void TraitementCROOM(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
         System.out.println("JE SUIS DANS TraitementCROOM");
         ReponseROMP rep;
 
-        if (bd.SuppressionReservationById(Integer.parseInt(getChargeUtile()))) {
+        if (BDHolidays.getInstance().SuppressionReservationById(Integer.parseInt(getChargeUtile()))) {
             rep = new ReponseROMP(ReponseROMP.OK, "La suppression a été un succès !!");
         } else {
             rep = new ReponseROMP(ReponseROMP.ERREURINSERTION, "Erreur : la suppression n'a pas pu se faire !!");
@@ -268,11 +264,10 @@ public class RequeteROMP implements Requete, Serializable {
 
     public void TraitementLROOMS(Socket sock, ConsoleServeur cs) throws ClassNotFoundException, SQLException {
 
-        BDHolidays bd = new BDHolidays("root", "root", "bd_holidays");
         System.out.println("JE SUIS DANS TraitementLROOMS");
         ReponseROMP rep;
 
-        ResultSet rs = bd.getAllChambreReserve();
+        ResultSet rs = BDHolidays.getInstance().getAllChambreReserve();
         String s = "";
 
         while (rs.next()) {
