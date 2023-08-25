@@ -53,17 +53,16 @@ public class ChatWindow extends javax.swing.JFrame {
             
     public ChatWindow(String nomCli, MulticastSocket socket, InetAddress ad) throws IOException {
         initComponents();
-        port = Integer.parseInt(Utils.getItemConfig(path, "PORT_CARD"));
         Label_Titre.setText("Conversation ~ " + nomCli);
         List_Message.setModel(model);
         client = nomCli;
         socketGroupe = socket;
         adresseGroupe = ad;
-        
         config = new Configuration(path, "PORT_CHAT");
     }
     
     public String getTagByType (String type) {
+        /*
         Socket cliSock;
         String chaine="";
         RequeteHOLICOP req;
@@ -88,7 +87,9 @@ public class ChatWindow extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(ChatWindow.class.getName()).log(Level.SEVERE, null, ex);
         }   
-        return chaine;
+        return chaine;*/
+        
+        return "oui";
     }
 
     /**
@@ -196,9 +197,9 @@ public class ChatWindow extends javax.swing.JFrame {
                         .addComponent(Radio_Question)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(Radio_Reponse)
-                        .addGap(0, 0, 0)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(Radio_Event)
-                        .addContainerGap(43, Short.MAX_VALUE))))
+                        .addContainerGap(37, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel2)
@@ -211,22 +212,24 @@ public class ChatWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void Bouton_EnvoyerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Bouton_EnvoyerActionPerformed
+        
         if (Field_Message.getText().equals(""))
             return;
+        
         String tag ="";
         
         if (Radio_Question.isSelected())
-            tag = getTagByType("QUEST");
+            tag = "QUEST";
         else if (Radio_Event.isSelected())
-            tag = getTagByType("EVENT");
-        else if (Radio_Reponse.isSelected() && List_Message.getSelectedIndex() > -1)
-            tag = getTagByType("REP");
+            tag = "EVENT";
+        else 
+            tag ="REP";
         
         String texte = Field_Message.getText();
         
         String message = "<" + client + "> ("+ tag + ") " + texte;
         
-        DatagramPacket dtg = new DatagramPacket(message.getBytes(), message.length(), adresseGroupe, 60060);
+        DatagramPacket dtg = new DatagramPacket(message.getBytes(), message.length(), adresseGroupe, config.getPort());
         try
         {
             socketGroupe.send(dtg);
@@ -237,7 +240,7 @@ public class ChatWindow extends javax.swing.JFrame {
 
     private void Bouton_QuitterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Bouton_QuitterActionPerformed
         String msg = client + " vient de quitter le groupe. ";
-        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, 60060);
+        DatagramPacket dtg = new DatagramPacket(msg.getBytes(), msg.length(), adresseGroupe, config.getPort());
         try
         {
             socketGroupe.send(dtg);
@@ -261,6 +264,8 @@ public class ChatWindow extends javax.swing.JFrame {
             tk = new StringTokenizer(chaine, ")");
             chaine = tk.nextToken();
             Field_Message.setText("{REP to " + chaine + "} ");
+            Radio_Reponse.setSelected(true);
+             
         }
     }//GEN-LAST:event_List_MessageMouseClicked
 

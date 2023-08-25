@@ -8,12 +8,17 @@ package ProtocoleHOLICOP;
 import ProtocoleSPAYMAP.ReponseSPAYMAP;
 import Requete.Requete;
 import Serveurs.ConsoleServeur;
+import Utilities.Configuration;
 import Utilities.RequeteUtils;
+import Utilities.Utils;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -24,12 +29,12 @@ import java.util.logging.Logger;
 public class RequeteHOLICOP implements Requete, Serializable {
 
     private String chargeUtile;
-    private int type;
+    File currentDirectory = new File(System.getProperty("user.dir"));
+    public String path = currentDirectory+"\\src\\Config\\Config.config";
+    Configuration config;
 
-    public static final int HSEND = 1;
 
-    public RequeteHOLICOP(int t, String chu) {
-        type = t;
+    public RequeteHOLICOP(String chu) {
         chargeUtile = chu;
     }
 
@@ -37,34 +42,26 @@ public class RequeteHOLICOP implements Requete, Serializable {
         return chargeUtile;
     }
 
-    /**
-     * @param chargeUtile the chargeUtile to set
-     */
     public void setChargeUtile(String chargeUtile) {
         this.chargeUtile = chargeUtile;
     }
 
-    private String calculeTimestamp(String type) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ddhhmmss");
-        LocalDateTime now = LocalDateTime.now();
 
-        return type + dtf.format(now);
-    }
 
     public Runnable createRunnable(Socket s, ConsoleServeur cs) {
-        switch (type) {
-            case HSEND:
+      
                 return new Runnable() {
                     public void run() {
-                        traiteRequete(s, cs);
+                        try {
+                            traiteRequete(s, cs);
+                        } catch (IOException ex) {
+                            Logger.getLogger(RequeteHOLICOP.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
-                };
-            default:
-                throw new AssertionError();
-        }
-
+                };              
     }
 
+<<<<<<< HEAD
     private void traiteRequete(Socket s, ConsoleServeur cs) {
 
         try {
@@ -87,57 +84,44 @@ public class RequeteHOLICOP implements Requete, Serializable {
             }
         } catch (SQLException | ClassNotFoundException ex) {
             Logger.getLogger(RequeteHOLICOP.class.getName()).log(Level.SEVERE, null, ex);
-        }
+=======
+    private void traiteRequete(Socket s, ConsoleServeur cs) throws IOException {
+        String adresseDistante = s.getRemoteSocketAddress().toString();
+        cs.TraceEvenements(adresseDistante + "#" + "AUTH" + "#" + Thread.currentThread().getName());
+        
+        String contenu = getChargeUtile();
+        String[] authInfo = contenu.split(":");
+        String pseudo = authInfo[0];
+        String receivedDigest = authInfo[1];
+        long temps = Long.parseLong(authInfo[2]);
+        double alea = Double.parseDouble(authInfo[3]);
+        boolean authSuccess = true;
+        
+                //verif
+        //String expectedDigest = ;  BD
+        //boolean authSuccess = receivedDigest.equals(expectedDigest);
 
+        //
+        ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
+        //if (AuthenticationSuccess)
+       
+        
+        if (authSuccess) {
+            config = new Configuration(path, "PORT_CHAT");
+            config.setAdresse(Utils.getItemConfig(path, "adress_multicast"));
+            oos.writeObject("ok#" + config.getPort() + "#" + config.getAdresse());
+
+        } else {
+            oos.writeObject("ko");
+>>>>>>> 67d79c116cdadf3f52e9ea46196ffef06c6a06bb
+        }
+        oos.flush();
+        
+         
+       
     }
 
-    private void AskQuestion(Socket sock, ConsoleServeur cs) throws SQLException, ClassNotFoundException {
-        String adresseDistante = sock.getRemoteSocketAddress().toString();
-        cs.TraceEvenements(adresseDistante + "#" + "ASK_QUESTION" + "#" + Thread.currentThread().getName());
-
-        String message = calculeTimestamp("q");
-        ObjectOutputStream oos;
-        ReponseHOLICOP rep = new ReponseHOLICOP(ReponseHOLICOP.OK, message);
-        try {
-            oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep);
-            oos.flush();
-            oos.close();
-        } catch (IOException e) {
-            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-        }
-    }
-
-    private void AskEvent(Socket sock, ConsoleServeur cs) throws SQLException, ClassNotFoundException {
-        String adresseDistante = sock.getRemoteSocketAddress().toString();
-        cs.TraceEvenements(adresseDistante + "#" + "EVENT" + "#" + Thread.currentThread().getName());
-
-        String message = calculeTimestamp("e");
-        ObjectOutputStream oos;
-        ReponseHOLICOP rep = new ReponseHOLICOP(ReponseHOLICOP.OK, message);
-        try {
-            oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep);
-            oos.flush();
-            oos.close();
-        } catch (IOException e) {
-            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-        }
-    }
-
-    private void AskReponse(Socket sock, ConsoleServeur cs) throws SQLException, ClassNotFoundException {
-        String adresseDistante = sock.getRemoteSocketAddress().toString();
-        cs.TraceEvenements(adresseDistante + "#" + "REP" + "#" + Thread.currentThread().getName());
-        String message = calculeTimestamp("r");
-        ObjectOutputStream oos;
-        ReponseHOLICOP rep = new ReponseHOLICOP(ReponseHOLICOP.OK, message);
-        try {
-            oos = new ObjectOutputStream(sock.getOutputStream());
-            oos.writeObject(rep);
-            oos.flush();
-            oos.close();
-        } catch (IOException e) {
-            System.err.println("Erreur réseau ? [" + e.getMessage() + "]");
-        }
+    private void traiteReponse(Socket sock, ConsoleServeur cs, String type) throws SQLException, ClassNotFoundException {
+       
     }
 }

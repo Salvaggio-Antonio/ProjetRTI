@@ -5,13 +5,17 @@
  */
 package Serveurs;
 
+import Application_Chat.ThreadReception;
 import Utilities.Utils;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultListModel;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -22,13 +26,15 @@ public class FenAppServeur_Chat extends javax.swing.JFrame implements ConsoleSer
     
     
     File currentDirectory = new File(System.getProperty("user.dir"));
-    
     public String path = currentDirectory+"\\src\\Config\\Config.config";
     
-    private int port;
+    private int portgroup;
+    private int portchat;
     private Object[] col = { "Origine", "Requête", "Thread"};
     private DefaultTableModel modelTable = new DefaultTableModel(col, 0);
     
+    private InetAddress adresseGroupe;
+    MulticastSocket socketGroupe;
     /**
      * Creates new form MainWindow
      */
@@ -36,8 +42,13 @@ public class FenAppServeur_Chat extends javax.swing.JFrame implements ConsoleSer
         initComponents();
         setTitle("Serveur");
         jButtonStop.setEnabled(false);
+<<<<<<< HEAD
         port = Integer.parseInt(Utils.getItemConfig(path, "PORT_CHAT"));
         
+=======
+        portgroup = Integer.parseInt(Utils.getItemConfig(path, "PORT_GROUP"));
+        portchat = Integer.parseInt(Utils.getItemConfig(path, "PORT_CHAT"));
+>>>>>>> 67d79c116cdadf3f52e9ea46196ffef06c6a06bb
     }
 
     /**
@@ -162,14 +173,24 @@ public class FenAppServeur_Chat extends javax.swing.JFrame implements ConsoleSer
 
     
     private void jButtonStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonStartActionPerformed
-        
+   
         try {
             TraceEvenements("serveur chat#acquisition du port #main");
             
             int maxthread = Integer.parseInt(Utils.getItemConfig(path, "maxthreadChat"));
-            ThreadServeur ts = new ThreadServeur(port,  new ListeTaches(), this, maxthread);
+            ThreadServeur tsa = new ThreadServeur(portgroup,  new ListeTaches(), this, maxthread);
+            tsa.start();
+            
+            
+            adresseGroupe = InetAddress.getByName(Utils.getItemConfig(path, "adress_multicast"));
+            socketGroupe = new MulticastSocket(portchat);
+            socketGroupe.joinGroup(adresseGroupe);
+            
+            DefaultListModel<String> LMsgRecus = new DefaultListModel<>();
+            ThreadReception ts = new ThreadReception(socketGroupe,LMsgRecus);
             ts.start();
             
+
             jButtonStart.setEnabled(false);
             jButtonStop.setEnabled(true);
         } catch (IOException ex) {
