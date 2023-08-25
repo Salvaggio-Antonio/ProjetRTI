@@ -5,6 +5,7 @@
 package Utilities;
 
 import Clients_Activite.LoginActivite;
+import ProtocoleCCAPP.ReponseCCAPP;
 import ProtocoleFUCAMP.ReponseFUCAMP;
 import ProtocoleHOLICOP.ReponseHOLICOP;
 import ProtocoleROMP.ReponseROMP;
@@ -51,6 +52,8 @@ public class RequeteUtils {
                 case "SPAYMAP": r = (ReponseSPAYMAP)ois.readObject();
                 break;
                 case "HOLICOP": r = (ReponseHOLICOP)ois.readObject();
+                break;
+                case "CCAPP": r = (ReponseCCAPP)ois.readObject();
             }
             return r;
         }

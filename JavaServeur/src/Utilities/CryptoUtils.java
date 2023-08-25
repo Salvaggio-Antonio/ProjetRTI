@@ -154,6 +154,19 @@ public class CryptoUtils {
         chiffrement.init(Cipher.DECRYPT_MODE, cle);
         return chiffrement.doFinal(message);
     }
+    
+    public byte[] createHMAC(SecretKey secretKey, byte [] message) {
+        try {
+            Mac hmac = Mac.getInstance("HmacSHA256", codeProvider);
+            hmac.init(secretKey);
+            hmac.update(message);
+            
+            return hmac.doFinal();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
         
 

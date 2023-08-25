@@ -47,7 +47,7 @@ int main()
         hSocketService[i] = -1;
 
     /* 2. Acquisition des informations sur l'ordinateur local */
-    if ((infosHost = gethostbyname("zeus")) == 0)
+    if ((infosHost = gethostbyname("PC")) == 0)
     {
         printf("Erreur d'acquisition d'infos sur le host %d\n", errno);
         exit(1);
@@ -227,7 +227,7 @@ void *fctThreadAdmin()
     int hSocketAdminDup;
 
     /* 2. Acquisition des informations sur l'ordinateur local */
-    if ((infosHost = gethostbyname("zeus")) == 0)
+    if ((infosHost = gethostbyname("PC")) == 0)
     {
         printf("Erreur d'acquisition d'infos sur le host %d\n", errno);
         exit(1);

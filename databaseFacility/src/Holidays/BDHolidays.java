@@ -14,6 +14,7 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
 
     private BDHolidays() throws ClassNotFoundException, SQLException {
         super();
+        setConnection("root", password, db);
     }
    
 
@@ -23,6 +24,30 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             preparedStatement.setString(1, Email);
             preparedStatement.setString(2, mdp);
 
+            return preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public synchronized ResultSet getReservationByIdAndIdUser(int reservationId, int user) {
+        try {
+            String query = "SELECT * FROM reservations WHERE idreservations = ? AND id_titulaire = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, reservationId);
+            preparedStatement.setInt(2, user);
+            return preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    public synchronized ResultSet getReservationById(int reservationId) {
+        try {
+            String query = "SELECT * FROM reservations WHERE idreservations = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, reservationId);
             return preparedStatement.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,6 +162,17 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             return null;
         }
     }
+    public synchronized ResultSet getVoyageursByEmail(String Email) {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs WHERE mail = ?;");
+            preparedStatement.setString(1, Email);
+
+            return preparedStatement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     public synchronized ResultSet getVoyageursByEmailandName(String Email, String Nom) {
         try {
@@ -162,18 +198,6 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-    public synchronized ResultSet getVoyageursByEmail(String Email) {
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM voyageurs WHERE mail = ?;");
-            preparedStatement.setString(1, Email);
-
-            return preparedStatement.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 
@@ -381,10 +405,10 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
         }
     }
     
-    public synchronized boolean PayReservation(int reservation, double resteapayer) {
+    public synchronized boolean PayReservation(int reservation, double montant) {
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("update reservations set resteapayer = ?  where idreservations = ? ");
-            preparedStatement.setDouble(1, resteapayer);
+            PreparedStatement preparedStatement = connection.prepareStatement("update reservations set resteapayer = resteapayer - ?  where idreservations = ? ");
+            preparedStatement.setDouble(1, montant);
             preparedStatement.setInt(2, reservation);
 
             int rowCount = preparedStatement.executeUpdate();
@@ -394,6 +418,23 @@ public class BDHolidays extends ConnectionBDMySQL implements Serializable {
             e.printStackTrace();
 
             return false;
+        }
+    }
+    public double getRemainingAmount(int reservationId) {
+        try {
+            String query = "SELECT resteapayer FROM reservations WHERE idreservations = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, reservationId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getDouble("resteapayer");
+            } else {
+                return -1; // Si l'ID de réservation n'existe pas
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1; // En cas d'erreur
         }
     }
 

@@ -38,6 +38,8 @@
                         <th scope="col">Date de fin</th>
                         <th scope="col">Nombre de nuits</th>
                         <th scope="col">Prix net</th>
+                        <th scope="col">Reste a payer</th>
+                        
                     </tr>
                 </thead>
                 <tbody>

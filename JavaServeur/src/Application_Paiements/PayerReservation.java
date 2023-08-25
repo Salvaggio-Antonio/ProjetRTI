@@ -18,6 +18,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -240,7 +241,7 @@ public class PayerReservation extends javax.swing.JDialog {
                 oos = null;
                 double restaapayer = reste - montant;
                 //chiffrer symétrique
-                String message =facture.getReservation()+";"+restaapayer +";"+ jcreditcard.getText();
+                String message =facture.getReservation()+";"+montant+";"+ jcreditcard.getText();
                 try {
                     byte[] encryptmessage = CryptoUtils.getInstance().getChiffrement(User.getInstance().getMykeys().getSecretCrypt(), message.getBytes());
                     //créer signature
@@ -260,7 +261,63 @@ public class PayerReservation extends javax.swing.JDialog {
                     
                     if(rep.getCode() == ReponseSPAYMAP.OK)
                     {
-                        JOptionPane.showMessageDialog(null, "Le paiement a été effectué !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                        String[]tmp = rep.getChargeUtile().split(":");
+                        byte[]mess = Base64.getDecoder().decode(tmp[0]);
+                        byte[]hmac = Base64.getDecoder().decode(tmp[1]);
+                        
+                        mess = CryptoUtils.getInstance().getDechiffrement(User.getInstance().getMykeys().getSecretCrypt(), mess);
+                        
+                        byte[]hmaclocal = CryptoUtils.getInstance().createHMAC(User.getInstance().getMykeys().getSecretAuth(), mess);
+                        
+                        if(MessageDigest.isEqual(hmac, hmaclocal))
+                        {
+                            String[] messNonChiffre = new String(mess).split(":");
+                            JOptionPane.showMessageDialog(null, "Le paiement a été effectué ! il reste : "+messNonChiffre[0]+" voici le numéro de transaction financière : "+messNonChiffre[1], "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                            if(Double.parseDouble(messNonChiffre[0])== 0)
+                            {
+                                encryptmessage = CryptoUtils.getInstance().getChiffrement(User.getInstance().getMykeys().getSecretCrypt(), facture.getReservation().getBytes());
+                                hmac = CryptoUtils.getInstance().createHMAC(User.getInstance().getMykeys().getSecretAuth(), facture.getReservation().getBytes());
+                                message = User.getInstance().getUsername() +":"+ Base64.getEncoder().encodeToString(encryptmessage) +":"+ Base64.getEncoder().encodeToString(hmac);
+                                cliSock = new Socket(config.getAdresse(), config.getPort());
+                                req = new RequeteSPAYMAP(RequeteSPAYMAP.LGETFACTURE, message);
+                                oos = new ObjectOutputStream(cliSock.getOutputStream());
+                                RequeteUtils.SendRequest(req, "LGETFACTURE", oos, cliSock);
+                                
+                                ois = new ObjectInputStream(cliSock.getInputStream());
+                                rep = (ReponseSPAYMAP) RequeteUtils.ReceiveRequest(cliSock, ois, "SPAYMAP");
+                                
+                                if(rep.getCode() == ReponseSPAYMAP.OK)
+                                {
+                                    tmp = rep.getChargeUtile().split(":");
+                                    mess = Base64.getDecoder().decode(tmp[0]);
+                                    signature = Base64.getDecoder().decode(tmp[1]);
+                                    
+                                    message = new String (CryptoUtils.getInstance().getDechiffrement(pk, mess));
+                                    
+                                    if(CryptoUtils.getInstance().checkSignature(User.getInstance().getMykeys().getPublicHandshake(), signature,mess))
+                                    {
+                                        JOptionPane.showMessageDialog(null, message, "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                                    }
+                                    else
+                                    {
+                                        JOptionPane.showMessageDialog(null, "erreur signature", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                                    }
+                                }
+                                else
+                                {
+                                    JOptionPane.showMessageDialog(null, "erreur facture", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                                }
+                                cliSock.close();
+                                oos.close();
+                                ois.close();
+                            }
+                        }
+                        else
+                        {
+                            JOptionPane.showMessageDialog(null, "Erreur d'autthentification !", "CAUTION ! ", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                        
+                        
                         pr.fillTableAction_reservation();      
                         this.dispose();
                     }

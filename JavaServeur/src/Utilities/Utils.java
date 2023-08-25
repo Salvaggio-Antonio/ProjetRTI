@@ -47,7 +47,7 @@ public class Utils {
                 java.time.format.TextStyle.FULL_STANDALONE,
                 Locale.FRANCE
         );
-        return "k" + dayName.toLowerCase();
+        return  dayName.toLowerCase() +"k";
     }
     
     

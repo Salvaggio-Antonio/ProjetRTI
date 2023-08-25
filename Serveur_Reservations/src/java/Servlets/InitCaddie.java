@@ -51,7 +51,7 @@ public class InitCaddie extends HttpServlet {
             ResultSet s =BDHolidays.getInstance().getReservationChambreByEMailNonPaye(user);
             
             while(s != null && s.next()){
-                reservations.add(s.getString("idreservations")+":"+ s.getString("id_chambre")+":"+s.getString("date_debut")+":"+s.getString("date_fin")+":"+s.getString("NombreNuit")+":"+s.getString("prix_net"));
+                reservations.add(s.getString("idreservations")+":"+ s.getString("id_chambre")+":"+s.getString("date_debut")+":"+s.getString("date_fin")+":"+s.getString("NombreNuit")+":"+s.getString("prix_net")+":"+s.getString("resteapayer"));
             }
             
             session.setAttribute("reservations", reservations);

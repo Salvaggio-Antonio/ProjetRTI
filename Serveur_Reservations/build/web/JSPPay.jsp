@@ -23,6 +23,8 @@
             <form action="PaiementServlet" class="form-group" method="post" >
                 <label>Veuillez saisir le numéro de réservation que voulez payer</label>
                 <input type="number" class="form-control" name="reservation">
+                <label>Veuillez saisir le montant</label>
+                <input type="text" class="form-control" name="montant">
                 <lable>Numéro de votre carte de crédit </lable>
                 <input type="text" class="form-control" name="credit">
                 <input type="submit" class="btn btn-primary" value="Payer">

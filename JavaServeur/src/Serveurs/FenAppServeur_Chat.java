@@ -37,6 +37,7 @@ public class FenAppServeur_Chat extends javax.swing.JFrame implements ConsoleSer
         setTitle("Serveur");
         jButtonStop.setEnabled(false);
         port = Integer.parseInt(Utils.getItemConfig(path, "PORT_CHAT"));
+        
     }
 
     /**

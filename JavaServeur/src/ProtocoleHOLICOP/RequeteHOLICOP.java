@@ -68,6 +68,8 @@ public class RequeteHOLICOP implements Requete, Serializable {
     private void traiteRequete(Socket s, ConsoleServeur cs) {
 
         try {
+            
+            //verif mdp bd et check digest
             String tmp = getChargeUtile();
 
             switch (tmp) {

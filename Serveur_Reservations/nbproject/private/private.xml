@@ -2,6 +2,13 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/src/java/Servlets/PaiementServlet.java</file>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/src/java/Servlets/LoginServlet.java</file>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/src/java/Servlets/ReservationServlet.java</file>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/web/JSPPay.jsp</file>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/src/java/Servlets/InitCaddie.java</file>
+            <file>file:/C:/Users/Salva/Documents/ecole/important/3emeinformatique/rti/ProjetRTI/Serveur_Reservations/web/JSPInit.jsp</file>
+        </group>
     </open-files>
 </project-private>

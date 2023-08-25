@@ -6,6 +6,7 @@
 package Application_Chat;
 
 import Application_Chat.ChatWindow;
+import ProtocoleHOLICOP.RequeteHOLICOP;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
